@@ -1,0 +1,31 @@
+package com.rideshare.service;
+
+import com.rideshare.dto.UserResponse;
+import com.rideshare.model.User;
+import com.rideshare.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+
+@Service
+public class UserService {
+    
+    @Autowired
+    private UserRepository userRepository;
+    
+    public User getCurrentUser() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+    
+    public UserResponse getCurrentUserProfile() {
+        User user = getCurrentUser();
+        return UserResponse.fromUser(user);
+    }
+    
+    public User getUserById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+}

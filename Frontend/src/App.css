@@ -1,0 +1,442 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f8f9fa;
+}
+
+.App {
+  min-height: 100vh;
+}
+
+/* Animations */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Utility Classes */
+.fade-in {
+  animation: fadeIn 0.6s ease-out;
+}
+
+.slide-in {
+  animation: slideIn 0.5s ease-out;
+}
+
+/* Hover Effects */
+button:hover:not(:disabled),
+a[style*="backgroundColor"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2) !important;
+}
+
+button:active:not(:disabled),
+a[style*="backgroundColor"]:active {
+  transform: translateY(0);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Card Hover Effects */
+div[style*="backgroundColor: white"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Input Focus Effects */
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: #667eea !important;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+}
+
+/* Link Hover Effects */
+a {
+  transition: all 0.3s ease;
+}
+
+a:hover {
+  opacity: 0.85;
+}
+
+/* Smooth Scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Loading Spinner */
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+/* Feature Card Animations */
+.feature-card {
+  animation: fadeIn 0.6s ease-out;
+  animation-fill-mode: both;
+}
+
+.feature-card:nth-child(1) {
+  animation-delay: 0.1s;
+}
+.feature-card:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.feature-card:nth-child(3) {
+  animation-delay: 0.3s;
+}
+.feature-card:nth-child(4) {
+  animation-delay: 0.4s;
+}
+
+/* Button Pulse Animation on Hover */
+button:hover:not(:disabled) {
+  animation: pulse 1s infinite;
+}
+
+/* Responsive Typography */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 2rem !important;
+  }
+
+  h2 {
+    font-size: 1.5rem !important;
+  }
+
+  h3 {
+    font-size: 1.2rem !important;
+  }
+
+  p {
+    font-size: 0.95rem !important;
+  }
+}
+
+/* Mobile Menu Styles */
+@media (max-width: 768px) {
+  /* Hide desktop menu */
+  [style*="desktopMenu"] {
+    display: none !important;
+  }
+
+  /* Show mobile menu button */
+  button[style*="mobileMenuButton"] {
+    display: block !important;
+  }
+
+  /* Show mobile dropdown */
+  div[style*="mobileMenu"] {
+    display: flex !important;
+  }
+
+  /* Adjust hero section */
+  section[style*="hero"] > div[style*="heroImage"] {
+    display: none;
+  }
+
+  /* Stack grid columns */
+  div[style*="gridTemplateColumns"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Adjust padding */
+  section {
+    padding: 40px 15px !important;
+  }
+
+  /* Adjust hero title */
+  h1[style*="heroTitle"] {
+    font-size: 2.5rem !important;
+  }
+
+  /* Stack stats */
+  div[style*="statsGrid"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Stack buttons */
+  div[style*="heroButtons"],
+  div[style*="buttonGroup"] {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  div[style*="heroButtons"] > *,
+  div[style*="buttonGroup"] > * {
+    width: 100%;
+    text-align: center;
+  }
+
+  /* Adjust steps container */
+  div[style*="stepsContainer"] {
+    flex-direction: column;
+  }
+
+  div[style*="stepArrow"] {
+    transform: rotate(90deg);
+  }
+
+  /* Adjust footer */
+  div[style*="footerContent"] {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+/* Tablet Styles */
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* Adjust grids for tablets */
+  div[style*="gridTemplateColumns: repeat(auto-fit"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Adjust container padding */
+  [style*="container"] {
+    padding-left: 30px !important;
+    padding-right: 30px !important;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #667eea;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #5568d3;
+}
+
+/* Selection Color */
+::selection {
+  background-color: #667eea;
+  color: white;
+}
+
+::-moz-selection {
+  background-color: #667eea;
+  color: white;
+}
+
+/* Accessibility - Focus Visible */
+*:focus-visible {
+  outline: 3px solid #667eea;
+  outline-offset: 2px;
+}
+
+/* Print Styles */
+@media print {
+  nav,
+  footer,
+  button,
+  [style*="postButton"],
+  [style*="searchButton"] {
+    display: none !important;
+  }
+
+  * {
+    color: black !important;
+    background: white !important;
+  }
+}
+
+/* Transitions */
+* {
+  transition: color 0.3s ease, background-color 0.3s ease,
+    border-color 0.3s ease, transform 0.3s ease;
+}
+
+/* Image Optimization */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Prevent Text Selection on Buttons */
+button,
+a[role="button"] {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+}
+
+/* Loading State */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+/* Toast Notifications (if needed) */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 15px 20px;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  animation: slideIn 0.3s ease-out;
+  z-index: 10000;
+}
+
+.toast-success {
+  background-color: #27ae60;
+  color: white;
+}
+
+.toast-error {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.toast-info {
+  background-color: #3498db;
+  color: white;
+}
+
+/* Skeleton Loading */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s ease-in-out infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Empty State Styling */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #7f8c8d;
+}
+
+/* Status Badges */
+.status-badge {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 15px;
+  font-size: 0.85rem;
+  font-weight: bold;
+}
+
+.status-active {
+  background-color: #27ae60;
+  color: white;
+}
+
+.status-completed {
+  background-color: #3498db;
+  color: white;
+}
+
+.status-cancelled {
+  background-color: #e74c3c;
+  color: white;
+}
+
+/* Card Shadows on Scroll */
+.card-shadow {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card-shadow:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* Gradient Text */
+.gradient-text {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Grid Gap Responsive */
+@media (max-width: 480px) {
+  [style*="gap:"] {
+    gap: 10px !important;
+  }
+}
