@@ -48,40 +48,56 @@ const PostRide = () => {
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.formWrapper}>
-        <h2 style={styles.title}>Post a New Ride</h2>
-        {error && <div style={styles.error}>{error}</div>}
+    <div className="page-container">
+      <div className="form-card" style={{ maxWidth: "600px" }}>
+        <div className="mb-6 border-b border-gray-100 pb-4">
+          <h1 className="text-2xl font-bold text-dark">Post a New Ride</h1>
+          <p className="text-gray-500 text-sm">
+            Share your journey and earn while you drive.
+          </p>
+        </div>
 
-        <form onSubmit={handleSubmit} style={styles.form}>
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Source</label>
-            <input
-              type="text"
-              name="source"
-              value={formData.source}
-              onChange={handleChange}
-              placeholder="Starting location"
-              required
-              style={styles.input}
-            />
+        {error && <div className="alert-error mb-6">{error}</div>}
+
+        <form onSubmit={handleSubmit}>
+          {/* Route Section */}
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="form-group">
+              <label className="form-label">From (Source)</label>
+              <div className="input-with-icon">
+                <span className="input-icon">⦿</span>
+                <input
+                  type="text"
+                  name="source"
+                  value={formData.source}
+                  onChange={handleChange}
+                  placeholder="City or Area"
+                  required
+                  className="form-input pl-10"
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">To (Destination)</label>
+              <div className="input-with-icon">
+                <span className="input-icon text-primary">📍</span>
+                <input
+                  type="text"
+                  name="destination"
+                  value={formData.destination}
+                  onChange={handleChange}
+                  placeholder="City or Area"
+                  required
+                  className="form-input pl-10"
+                />
+              </div>
+            </div>
           </div>
 
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Destination</label>
-            <input
-              type="text"
-              name="destination"
-              value={formData.destination}
-              onChange={handleChange}
-              placeholder="Destination"
-              required
-              style={styles.input}
-            />
-          </div>
-
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Departure Date & Time</label>
+          {/* Date */}
+          <div className="form-group">
+            <label className="form-label">Departure Date & Time</label>
             <input
               type="datetime-local"
               name="departureDateTime"
@@ -89,135 +105,115 @@ const PostRide = () => {
               onChange={handleChange}
               required
               min={new Date().toISOString().slice(0, 16)}
-              style={styles.input}
+              className="form-input"
             />
           </div>
 
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Available Seats</label>
-            <input
-              type="number"
-              name="availableSeats"
-              value={formData.availableSeats}
-              onChange={handleChange}
-              min="1"
-              max="20"
-              required
-              style={styles.input}
-            />
+          {/* Details Grid */}
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="form-group">
+              <label className="form-label">Available Seats</label>
+              <div className="input-with-icon">
+                {/* FIXED: Added explicit width, height and style color */}
+                <svg
+                  className="input-icon"
+                  width="20"
+                  height="20"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  style={{ color: "#9CA3AF" }}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                  />
+                </svg>
+                <input
+                  type="number"
+                  name="availableSeats"
+                  value={formData.availableSeats}
+                  onChange={handleChange}
+                  min="1"
+                  max="20"
+                  placeholder="e.g. 3"
+                  required
+                  className="form-input pl-10"
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Price per Km (₹)</label>
+              <div className="input-with-icon">
+                <span className="input-icon font-bold text-gray-400">₹</span>
+                <input
+                  type="number"
+                  name="pricePerKm"
+                  value={formData.pricePerKm}
+                  onChange={handleChange}
+                  min="1"
+                  step="0.5"
+                  placeholder="e.g. 12"
+                  required
+                  className="form-input pl-10"
+                />
+              </div>
+            </div>
           </div>
 
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Price per Kilometer (₹)</label>
-            <input
-              type="number"
-              name="pricePerKm"
-              value={formData.pricePerKm}
-              onChange={handleChange}
-              min="1"
-              step="0.5"
-              required
-              style={styles.input}
-            />
-          </div>
-
-          <div style={styles.buttonGroup}>
+          <div className="flex gap-3 pt-4 border-t border-gray-100">
             <button
               type="button"
               onClick={() => navigate("/driver/dashboard")}
-              style={styles.cancelButton}
+              className="btn btn-secondary"
+              style={{ flex: 1 }}
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              style={styles.submitButton}
+              className="btn btn-primary"
+              style={{ flex: 1 }}
             >
-              {loading ? "Posting..." : "Post Ride"}
+              {loading ? "Posting..." : "Publish Ride"}
             </button>
           </div>
         </form>
       </div>
+
+      <style>{`
+        .grid-cols-2 { display: grid; grid-template-columns: 1fr 1fr; }
+        .gap-4 { gap: 1rem; }
+        .input-with-icon { position: relative; }
+        
+        /* Updated .input-icon to handle both text spans and SVGs correctly */
+        .input-icon { 
+          position: absolute; 
+          left: 12px; 
+          top: 50%; 
+          transform: translateY(-50%); 
+          pointer-events: none; 
+          z-index: 10;
+          width: 20px; 
+          height: 20px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #9CA3AF;
+        }
+        
+        .text-primary { color: var(--primary) !important; }
+        .text-gray-400 { color: #9CA3AF !important; }
+        .pl-10 { padding-left: 2.5rem !important; }
+        
+        @media (max-width: 640px) { .grid-cols-2 { grid-template-columns: 1fr; } }
+      `}</style>
     </div>
   );
-};
-
-const styles = {
-  container: {
-    minHeight: "calc(100vh - 64px)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#f5f5f5",
-    padding: "20px",
-  },
-  formWrapper: {
-    backgroundColor: "white",
-    padding: "40px",
-    borderRadius: "8px",
-    boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
-    width: "100%",
-    maxWidth: "500px",
-  },
-  title: {
-    textAlign: "center",
-    marginBottom: "30px",
-    color: "#2c3e50",
-  },
-  error: {
-    backgroundColor: "#fee",
-    color: "#c00",
-    padding: "10px",
-    borderRadius: "4px",
-    marginBottom: "20px",
-    textAlign: "center",
-  },
-  form: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "15px",
-  },
-  formGroup: {
-    display: "flex",
-    flexDirection: "column",
-  },
-  label: {
-    marginBottom: "5px",
-    color: "#555",
-    fontWeight: "500",
-  },
-  input: {
-    padding: "10px",
-    border: "1px solid #ddd",
-    borderRadius: "4px",
-    fontSize: "14px",
-  },
-  buttonGroup: {
-    display: "flex",
-    gap: "10px",
-    marginTop: "10px",
-  },
-  cancelButton: {
-    flex: 1,
-    backgroundColor: "#95a5a6",
-    color: "white",
-    padding: "12px",
-    border: "none",
-    borderRadius: "4px",
-    fontSize: "16px",
-    cursor: "pointer",
-  },
-  submitButton: {
-    flex: 1,
-    backgroundColor: "#27ae60",
-    color: "white",
-    padding: "12px",
-    border: "none",
-    borderRadius: "4px",
-    fontSize: "16px",
-    cursor: "pointer",
-  },
 };
 
 export default PostRide;

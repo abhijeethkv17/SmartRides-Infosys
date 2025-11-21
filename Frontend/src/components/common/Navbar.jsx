@@ -16,387 +16,231 @@ const Navbar = () => {
   };
 
   const isActive = (path) => location.pathname === path;
+  const linkClass = (path) => (isActive(path) ? "nav-link active" : "nav-link");
+
+  // SVG Icons
+  const CarIcon = () => (
+    <svg className="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+      />
+    </svg>
+  );
 
   return (
-    <nav style={styles.navbar}>
-      <div style={styles.container}>
-        <Link to="/" style={styles.brand}>
-          <span style={styles.brandIcon}>🚗</span>
-          Smart Ride Sharing
+    <nav className="navbar">
+      <div className="container nav-container">
+        <Link to="/" className="brand-logo">
+          <div className="brand-icon">
+            <svg
+              width="24"
+              height="24"
+              fill="none"
+              stroke="white"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M13 10V3L4 14h7v7l9-11h-7z"
+              />
+            </svg>
+          </div>
+          <span>SmartRides</span>
         </Link>
 
         {/* Desktop Menu */}
-        <div style={styles.desktopMenu}>
+        <div className="desktop-menu">
           {user ? (
             <>
-              <div style={styles.userInfo}>
-                <div style={styles.avatar}>
-                  {user.name.charAt(0).toUpperCase()}
-                </div>
-                <span style={styles.userName}>{user.name}</span>
-                <span style={styles.userRole}>{user.role}</span>
+              <div className="nav-links">
+                {user.role === ROLE.DRIVER ? (
+                  <>
+                    <Link
+                      to="/driver/dashboard"
+                      className={linkClass("/driver/dashboard")}
+                    >
+                      Dashboard
+                    </Link>
+                    <Link
+                      to="/driver/post-ride"
+                      className={linkClass("/driver/post-ride")}
+                    >
+                      Post Ride
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      to="/passenger/dashboard"
+                      className={linkClass("/passenger/dashboard")}
+                    >
+                      Dashboard
+                    </Link>
+                    <Link
+                      to="/passenger/search-rides"
+                      className={linkClass("/passenger/search-rides")}
+                    >
+                      Find Ride
+                    </Link>
+                  </>
+                )}
+                <Link to="/profile" className={linkClass("/profile")}>
+                  Profile
+                </Link>
               </div>
-              {user.role === ROLE.DRIVER ? (
-                <>
-                  <Link
-                    to="/driver/dashboard"
-                    style={{
-                      ...styles.link,
-                      ...(isActive("/driver/dashboard")
-                        ? styles.activeLink
-                        : {}),
-                    }}
-                    onClick={() => setMobileMenuOpen(false)}
+
+              <div className="user-menu">
+                <div className="user-info">
+                  <span className="user-name">{user.name}</span>
+                  <span className="user-badge">
+                    {user.role === ROLE.DRIVER ? "Driver" : "Passenger"}
+                  </span>
+                </div>
+                <button onClick={handleLogout} className="btn-logout">
+                  <svg
+                    className="icon"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                   >
-                    Dashboard
-                  </Link>
-                  <Link
-                    to="/driver/post-ride"
-                    style={{
-                      ...styles.link,
-                      ...(isActive("/driver/post-ride")
-                        ? styles.activeLink
-                        : {}),
-                    }}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Post Ride
-                  </Link>
-                </>
-              ) : (
-                <>
-                  <Link
-                    to="/passenger/dashboard"
-                    style={{
-                      ...styles.link,
-                      ...(isActive("/passenger/dashboard")
-                        ? styles.activeLink
-                        : {}),
-                    }}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Dashboard
-                  </Link>
-                  <Link
-                    to="/passenger/search-rides"
-                    style={{
-                      ...styles.link,
-                      ...(isActive("/passenger/search-rides")
-                        ? styles.activeLink
-                        : {}),
-                    }}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Search Rides
-                  </Link>
-                </>
-              )}
-              <Link
-                to="/profile"
-                style={{
-                  ...styles.link,
-                  ...(isActive("/profile") ? styles.activeLink : {}),
-                }}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Profile
-              </Link>
-              <button onClick={handleLogout} style={styles.logoutButton}>
-                Logout
-              </button>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                    />
+                  </svg>
+                </button>
+              </div>
             </>
           ) : (
-            <>
-              <Link
-                to="/"
-                style={{
-                  ...styles.link,
-                  ...(isActive("/") ? styles.activeLink : {}),
-                }}
-              >
-                Home
+            <div className="auth-buttons">
+              <Link to="/login" className="nav-link">
+                Sign In
               </Link>
-              <Link to="/login" style={styles.loginLink}>
-                Login
+              <Link to="/register" className="btn btn-primary btn-sm">
+                Get Started
               </Link>
-              <Link to="/register" style={styles.registerButton}>
-                Sign Up
-              </Link>
-            </>
+            </div>
           )}
         </div>
 
-        {/* Mobile Menu Button */}
+        {/* Mobile Toggle */}
         <button
-          style={styles.mobileMenuButton}
+          className="mobile-toggle"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
         >
-          ☰
+          <svg
+            className="icon"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M4 6h16M4 12h16M4 18h16"
+            />
+          </svg>
         </button>
       </div>
 
-      {/* Mobile Menu Dropdown */}
-      {mobileMenuOpen && (
-        <div style={styles.mobileMenu}>
-          {user ? (
-            <>
-              <div style={styles.mobileUserInfo}>
-                <div style={styles.avatar}>
-                  {user.name.charAt(0).toUpperCase()}
-                </div>
-                <div>
-                  <div style={styles.mobileUserName}>{user.name}</div>
-                  <div style={styles.mobileUserRole}>{user.role}</div>
-                </div>
-              </div>
-              {user.role === ROLE.DRIVER ? (
-                <>
-                  <Link
-                    to="/driver/dashboard"
-                    style={styles.mobileLink}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Dashboard
-                  </Link>
-                  <Link
-                    to="/driver/post-ride"
-                    style={styles.mobileLink}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Post Ride
-                  </Link>
-                </>
-              ) : (
-                <>
-                  <Link
-                    to="/passenger/dashboard"
-                    style={styles.mobileLink}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Dashboard
-                  </Link>
-                  <Link
-                    to="/passenger/search-rides"
-                    style={styles.mobileLink}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Search Rides
-                  </Link>
-                </>
-              )}
-              <Link
-                to="/profile"
-                style={styles.mobileLink}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Profile
-              </Link>
-              <button onClick={handleLogout} style={styles.mobileLogoutButton}>
-                Logout
-              </button>
-            </>
-          ) : (
-            <>
-              <Link
-                to="/"
-                style={styles.mobileLink}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Home
-              </Link>
-              <Link
-                to="/login"
-                style={styles.mobileLink}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Login
-              </Link>
-              <Link
-                to="/register"
-                style={styles.mobileLink}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Sign Up
-              </Link>
-            </>
-          )}
-        </div>
-      )}
+      {/* Internal CSS for Navbar specific layout */}
+      <style>{`
+        .navbar {
+          background-color: white;
+          border-bottom: 1px solid var(--border);
+          position: sticky;
+          top: 0;
+          z-index: 1000;
+          height: 72px;
+          display: flex;
+          align-items: center;
+        }
+        .nav-container {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          width: 100%;
+        }
+        .brand-logo {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          font-size: 1.25rem;
+          font-weight: 800;
+          color: var(--primary);
+          letter-spacing: -0.025em;
+        }
+        .brand-icon {
+          background: var(--primary);
+          padding: 6px;
+          border-radius: 8px;
+          display: flex;
+        }
+        .desktop-menu {
+          display: flex;
+          align-items: center;
+          gap: 2rem;
+        }
+        .nav-links {
+          display: flex;
+          gap: 1.5rem;
+        }
+        .nav-link {
+          font-weight: 500;
+          color: var(--text);
+          font-size: 0.95rem;
+        }
+        .nav-link:hover, .nav-link.active {
+          color: var(--primary);
+        }
+        .user-menu {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          padding-left: 1.5rem;
+          border-left: 1px solid var(--border);
+        }
+        .user-info {
+          text-align: right;
+          line-height: 1.2;
+        }
+        .user-name {
+          display: block;
+          font-weight: 600;
+          font-size: 0.9rem;
+          color: var(--dark);
+        }
+        .user-badge {
+          font-size: 0.75rem;
+          color: var(--text-light);
+          text-transform: uppercase;
+        }
+        .btn-logout {
+          background: #FEE2E2;
+          color: #EF4444;
+          border: none;
+          padding: 8px;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        .btn-logout:hover { background: #FCA5A5; }
+        .btn-sm { padding: 0.5rem 1.25rem; font-size: 0.875rem; }
+        .auth-buttons { display: flex; gap: 1.5rem; align-items: center; }
+        .mobile-toggle { display: none; background: none; border: none; cursor: pointer; color: var(--dark); }
+        
+        @media (max-width: 768px) {
+          .desktop-menu { display: none; }
+          .mobile-toggle { display: block; }
+        }
+      `}</style>
     </nav>
   );
-};
-
-const styles = {
-  navbar: {
-    backgroundColor: "#2c3e50",
-    boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
-    position: "sticky",
-    top: 0,
-    zIndex: 1000,
-  },
-  container: {
-    maxWidth: "1400px",
-    margin: "0 auto",
-    padding: "0 20px",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    minHeight: "70px",
-  },
-  brand: {
-    color: "white",
-    fontSize: "1.5rem",
-    fontWeight: "bold",
-    textDecoration: "none",
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-  },
-  brandIcon: {
-    fontSize: "1.8rem",
-  },
-  desktopMenu: {
-    display: "flex",
-    alignItems: "center",
-    gap: "25px",
-  },
-  userInfo: {
-    display: "flex",
-    alignItems: "center",
-    gap: "12px",
-    padding: "8px 16px",
-    backgroundColor: "rgba(255,255,255,0.1)",
-    borderRadius: "50px",
-  },
-  avatar: {
-    width: "40px",
-    height: "40px",
-    borderRadius: "50%",
-    backgroundColor: "#667eea",
-    color: "white",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontWeight: "bold",
-    fontSize: "1.2rem",
-  },
-  userName: {
-    color: "white",
-    fontWeight: "600",
-  },
-  userRole: {
-    color: "#ffd700",
-    fontSize: "0.85rem",
-    fontWeight: "600",
-    textTransform: "uppercase",
-  },
-  link: {
-    color: "white",
-    textDecoration: "none",
-    padding: "8px 16px",
-    borderRadius: "5px",
-    transition: "all 0.3s",
-    fontWeight: "500",
-  },
-  activeLink: {
-    backgroundColor: "rgba(255,255,255,0.2)",
-    color: "#ffd700",
-  },
-  loginLink: {
-    color: "white",
-    textDecoration: "none",
-    padding: "8px 20px",
-    borderRadius: "5px",
-    transition: "all 0.3s",
-    fontWeight: "500",
-    border: "2px solid transparent",
-  },
-  registerButton: {
-    backgroundColor: "#667eea",
-    color: "white",
-    textDecoration: "none",
-    padding: "10px 25px",
-    borderRadius: "50px",
-    fontWeight: "bold",
-    transition: "all 0.3s",
-    boxShadow: "0 4px 15px rgba(102,126,234,0.4)",
-  },
-  logoutButton: {
-    backgroundColor: "#e74c3c",
-    color: "white",
-    border: "none",
-    padding: "10px 25px",
-    borderRadius: "50px",
-    cursor: "pointer",
-    fontSize: "14px",
-    fontWeight: "bold",
-    transition: "all 0.3s",
-    boxShadow: "0 4px 15px rgba(231,76,60,0.4)",
-  },
-  mobileMenuButton: {
-    display: "none",
-    backgroundColor: "transparent",
-    border: "none",
-    color: "white",
-    fontSize: "1.8rem",
-    cursor: "pointer",
-    padding: "5px",
-  },
-  mobileMenu: {
-    display: "none",
-    flexDirection: "column",
-    backgroundColor: "#34495e",
-    padding: "20px",
-    gap: "10px",
-  },
-  mobileUserInfo: {
-    display: "flex",
-    alignItems: "center",
-    gap: "15px",
-    padding: "15px",
-    backgroundColor: "rgba(255,255,255,0.1)",
-    borderRadius: "10px",
-    marginBottom: "10px",
-  },
-  mobileUserName: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: "1.1rem",
-  },
-  mobileUserRole: {
-    color: "#ffd700",
-    fontSize: "0.9rem",
-    textTransform: "uppercase",
-  },
-  mobileLink: {
-    color: "white",
-    textDecoration: "none",
-    padding: "12px 15px",
-    borderRadius: "5px",
-    transition: "background-color 0.3s",
-    fontWeight: "500",
-  },
-  mobileLogoutButton: {
-    backgroundColor: "#e74c3c",
-    color: "white",
-    border: "none",
-    padding: "12px",
-    borderRadius: "5px",
-    cursor: "pointer",
-    fontWeight: "bold",
-    marginTop: "10px",
-  },
-  "@media (max-width: 768px)": {
-    desktopMenu: {
-      display: "none",
-    },
-    mobileMenuButton: {
-      display: "block",
-    },
-    mobileMenu: {
-      display: "flex",
-    },
-  },
 };
 
 export default Navbar;

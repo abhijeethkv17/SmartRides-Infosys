@@ -34,155 +34,229 @@ const PassengerDashboard = () => {
     });
   };
 
-  const getStatusColor = (status) => {
+  const getBadgeClass = (status) => {
     switch (status) {
       case "CONFIRMED":
-        return "#27ae60";
+        return "badge badge-confirmed";
       case "COMPLETED":
-        return "#3498db";
+        return "badge badge-completed";
       case "CANCELLED":
-        return "#e74c3c";
+        return "badge badge-cancelled";
       default:
-        return "#95a5a6";
+        return "badge";
     }
   };
 
   if (loading)
     return (
-      <div style={styles.loadingContainer}>
-        <div style={styles.spinner}></div>
-        <p style={styles.loadingText}>Loading your bookings...</p>
+      <div className="loading-wrapper">
+        <div className="spinner"></div>
       </div>
     );
 
   return (
-    <div style={styles.container}>
-      {/* Header Section */}
-      <div style={styles.header}>
-        <div>
-          <h1 style={styles.title}>Passenger Dashboard</h1>
-          <p style={styles.subtitle}>View and manage your ride bookings</p>
-        </div>
-        <Link to="/passenger/search-rides" style={styles.searchButton}>
-          🔍 Search Rides
-        </Link>
-      </div>
-
-      {error && <div style={styles.error}>{error}</div>}
-
-      {/* Stats Cards */}
-      <div style={styles.statsGrid}>
-        <div style={styles.statCard}>
-          <div style={styles.statIcon}>🎫</div>
+    <div className="page-container">
+      <div className="container">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-8">
           <div>
-            <div style={styles.statNumber}>{bookings.length}</div>
-            <div style={styles.statLabel}>Total Bookings</div>
-          </div>
-        </div>
-        <div style={styles.statCard}>
-          <div style={styles.statIcon}>✅</div>
-          <div>
-            <div style={styles.statNumber}>
-              {bookings.filter((b) => b.status === "CONFIRMED").length}
-            </div>
-            <div style={styles.statLabel}>Confirmed Rides</div>
-          </div>
-        </div>
-        <div style={styles.statCard}>
-          <div style={styles.statIcon}>💰</div>
-          <div>
-            <div style={styles.statNumber}>
-              ₹
-              {bookings.reduce((sum, b) => sum + b.estimatedFare, 0).toFixed(0)}
-            </div>
-            <div style={styles.statLabel}>Total Spent</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Bookings Section */}
-      <div style={styles.section}>
-        <h2 style={styles.sectionTitle}>My Bookings</h2>
-        {bookings.length === 0 ? (
-          <div style={styles.emptyState}>
-            <div style={styles.emptyIcon}>🎫</div>
-            <h3 style={styles.emptyTitle}>No bookings yet</h3>
-            <p style={styles.emptyText}>
-              Start your journey by searching and booking available rides
+            <h1 className="text-2xl mb-1">My Journeys</h1>
+            <p className="text-gray-500 text-sm">
+              Track your upcoming and past rides.
             </p>
-            <Link to="/passenger/search-rides" style={styles.emptyButton}>
-              Search for Rides
+          </div>
+          <Link to="/passenger/search-rides" className="btn btn-primary">
+            <svg
+              className="icon"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            Find a Ride
+          </Link>
+        </div>
+
+        {error && <div className="alert-error mb-4">{error}</div>}
+
+        {/* Stats Overview */}
+        <div className="stats-grid">
+          <div className="stat-card">
+            <div
+              className="stat-icon-wrapper"
+              style={{ color: "#F59E0B", background: "#FEF3C7" }}
+            >
+              <svg
+                className="icon"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"
+                />
+              </svg>
+            </div>
+            <div className="stat-content">
+              <h3>{bookings.length}</h3>
+              <p>Total Bookings</p>
+            </div>
+          </div>
+          <div className="stat-card">
+            <div
+              className="stat-icon-wrapper"
+              style={{ color: "#10B981", background: "#D1FAE5" }}
+            >
+              <svg
+                className="icon"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <div className="stat-content">
+              <h3>{bookings.filter((b) => b.status === "CONFIRMED").length}</h3>
+              <p>Confirmed Rides</p>
+            </div>
+          </div>
+          <div className="stat-card">
+            <div
+              className="stat-icon-wrapper"
+              style={{ color: "#2563EB", background: "#DBEAFE" }}
+            >
+              <svg
+                className="icon"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <div className="stat-content">
+              <h3>
+                ₹
+                {bookings
+                  .reduce((sum, b) => sum + b.estimatedFare, 0)
+                  .toFixed(0)}
+              </h3>
+              <p>Total Spent</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Bookings List */}
+        <h2 className="text-xl font-bold mb-4 text-gray-700">
+          Recent Activity
+        </h2>
+
+        {bookings.length === 0 ? (
+          <div className="empty-state">
+            <div className="mb-4 text-4xl">🧳</div>
+            <h3 className="text-lg font-bold text-gray-700">No bookings yet</h3>
+            <p className="text-gray-500 mb-4">
+              Ready to travel? Find a ride and start your journey.
+            </p>
+            <Link to="/passenger/search-rides" className="btn btn-secondary">
+              Search Available Rides
             </Link>
           </div>
         ) : (
-          <div style={styles.bookingsGrid}>
+          <div className="bookings-grid">
             {bookings.map((booking) => (
-              <div key={booking.id} style={styles.bookingCard}>
-                <div style={styles.cardHeader}>
-                  <div style={styles.routeInfo}>
-                    <h3 style={styles.route}>
-                      {booking.ride.source} → {booking.ride.destination}
-                    </h3>
-                    <p style={styles.dateTime}>
-                      📅 {formatDateTime(booking.ride.departureDateTime)}
-                    </p>
+              <div key={booking.id} className="card booking-card">
+                {/* Route Header */}
+                <div className="card-header bg-gray-50">
+                  <div>
+                    <div className="flex items-center gap-2 text-lg font-bold text-dark">
+                      {booking.ride.source}{" "}
+                      <span className="text-gray-400 text-sm">→</span>{" "}
+                      {booking.ride.destination}
+                    </div>
+                    <div className="text-sm text-gray-500 flex items-center gap-1 mt-1">
+                      <svg
+                        className="icon w-4 h-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
+                      </svg>
+                      {formatDateTime(booking.ride.departureDateTime)}
+                    </div>
                   </div>
-                  <span
-                    style={{
-                      ...styles.statusBadge,
-                      backgroundColor: getStatusColor(booking.status),
-                    }}
-                  >
+                  <span className={getBadgeClass(booking.status)}>
                     {booking.status}
                   </span>
                 </div>
 
-                <div style={styles.cardBody}>
-                  <div style={styles.driverSection}>
-                    <div style={styles.driverAvatar}>
-                      {booking.ride.driver.name.charAt(0).toUpperCase()}
+                <div className="card-body">
+                  {/* Driver Info */}
+                  <div className="driver-mini-profile mb-4">
+                    <div className="avatar-circle">
+                      {booking.ride.driver.name.charAt(0)}
                     </div>
-                    <div style={styles.driverInfo}>
-                      <div style={styles.driverName}>
+                    <div>
+                      <div className="font-semibold text-sm">
                         {booking.ride.driver.name}
                       </div>
-                      <div style={styles.vehicleInfo}>
-                        🚗 {booking.ride.driver.carModel}
+                      <div className="text-xs text-gray-500">
+                        {booking.ride.driver.carModel} •{" "}
+                        {booking.ride.driver.licensePlate}
                       </div>
                     </div>
                   </div>
 
-                  <div style={styles.detailsGrid}>
-                    <div style={styles.detailItem}>
-                      <span style={styles.detailLabel}>📍 Pickup</span>
-                      <span style={styles.detailValue}>
-                        {booking.pickupLocation}
-                      </span>
+                  {/* Booking Details */}
+                  <div className="details-grid">
+                    <div className="detail-item">
+                      <span className="label">Pickup</span>
+                      <span className="value">{booking.pickupLocation}</span>
                     </div>
-                    <div style={styles.detailItem}>
-                      <span style={styles.detailLabel}>📍 Drop</span>
-                      <span style={styles.detailValue}>
-                        {booking.dropLocation}
-                      </span>
+                    <div className="detail-item">
+                      <span className="label">Drop</span>
+                      <span className="value">{booking.dropLocation}</span>
                     </div>
-                    <div style={styles.detailItem}>
-                      <span style={styles.detailLabel}>👥 Seats Booked</span>
-                      <span style={styles.detailValue}>
-                        {booking.seatsBooked}
-                      </span>
+                    <div className="detail-item">
+                      <span className="label">Seats</span>
+                      <span className="value">{booking.seatsBooked}</span>
                     </div>
-                    <div style={styles.detailItem}>
-                      <span style={styles.detailLabel}>💰 Fare</span>
-                      <span style={styles.fareValue}>
+                    <div className="detail-item">
+                      <span className="label">Fare</span>
+                      <span className="value text-primary font-bold">
                         ₹{booking.estimatedFare}
                       </span>
                     </div>
                   </div>
 
-                  <div style={styles.bookingFooter}>
-                    <span style={styles.bookingTime}>
-                      Booked on {formatDateTime(booking.bookingTime)}
-                    </span>
+                  <div className="mt-4 pt-3 border-t border-gray-100 text-xs text-gray-400 text-center">
+                    Booked on {formatDateTime(booking.bookingTime)}
                   </div>
                 </div>
               </div>
@@ -190,258 +264,21 @@ const PassengerDashboard = () => {
           </div>
         )}
       </div>
+
+      <style>{`
+        .empty-state { text-align: center; padding: 4rem 2rem; background: white; border-radius: var(--radius); border: 1px dashed var(--border); }
+        .bookings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.5rem; }
+        .booking-card { border: 1px solid var(--border); transition: all 0.2s; }
+        .driver-mini-profile { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: #F9FAFB; border-radius: 8px; border: 1px solid #F3F4F6; }
+        .avatar-circle { width: 36px; height: 36px; background: var(--dark); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; }
+        .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .detail-item { display: flex; flex-direction: column; }
+        .detail-item .label { font-size: 0.75rem; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+        .detail-item .value { font-size: 0.95rem; color: var(--dark); font-weight: 500; }
+        .bg-gray-50 { background-color: #F9FAFB; }
+      `}</style>
     </div>
   );
-};
-
-const styles = {
-  container: {
-    minHeight: "calc(100vh - 70px)",
-    backgroundColor: "#f8f9fa",
-    padding: "40px 20px",
-  },
-  loadingContainer: {
-    minHeight: "calc(100vh - 70px)",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#f8f9fa",
-  },
-  spinner: {
-    width: "50px",
-    height: "50px",
-    border: "4px solid #f3f3f3",
-    borderTop: "4px solid #667eea",
-    borderRadius: "50%",
-    animation: "spin 1s linear infinite",
-  },
-  loadingText: {
-    marginTop: "20px",
-    color: "#666",
-    fontSize: "1.1rem",
-  },
-  header: {
-    maxWidth: "1400px",
-    margin: "0 auto 40px",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    flexWrap: "wrap",
-    gap: "20px",
-  },
-  title: {
-    fontSize: "2.5rem",
-    color: "#2c3e50",
-    marginBottom: "8px",
-  },
-  subtitle: {
-    color: "#7f8c8d",
-    fontSize: "1.1rem",
-  },
-  searchButton: {
-    backgroundColor: "#3498db",
-    color: "white",
-    padding: "14px 30px",
-    borderRadius: "50px",
-    textDecoration: "none",
-    fontWeight: "bold",
-    fontSize: "1rem",
-    boxShadow: "0 4px 15px rgba(52,152,219,0.3)",
-    transition: "all 0.3s",
-    display: "inline-flex",
-    alignItems: "center",
-    gap: "8px",
-  },
-  error: {
-    backgroundColor: "#fee",
-    color: "#c00",
-    padding: "15px",
-    borderRadius: "8px",
-    margin: "0 auto 30px",
-    maxWidth: "1400px",
-    textAlign: "center",
-  },
-  statsGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-    gap: "25px",
-    maxWidth: "1400px",
-    margin: "0 auto 40px",
-  },
-  statCard: {
-    backgroundColor: "white",
-    padding: "25px",
-    borderRadius: "15px",
-    boxShadow: "0 2px 10px rgba(0,0,0,0.08)",
-    display: "flex",
-    alignItems: "center",
-    gap: "20px",
-    transition: "transform 0.3s, box-shadow 0.3s",
-  },
-  statIcon: {
-    fontSize: "3rem",
-  },
-  statNumber: {
-    fontSize: "2rem",
-    fontWeight: "bold",
-    color: "#2c3e50",
-  },
-  statLabel: {
-    color: "#7f8c8d",
-    fontSize: "0.95rem",
-  },
-  section: {
-    maxWidth: "1400px",
-    margin: "0 auto",
-  },
-  sectionTitle: {
-    fontSize: "1.8rem",
-    color: "#2c3e50",
-    marginBottom: "25px",
-  },
-  emptyState: {
-    backgroundColor: "white",
-    borderRadius: "15px",
-    padding: "80px 40px",
-    textAlign: "center",
-    boxShadow: "0 2px 10px rgba(0,0,0,0.08)",
-  },
-  emptyIcon: {
-    fontSize: "5rem",
-    marginBottom: "20px",
-  },
-  emptyTitle: {
-    fontSize: "1.8rem",
-    color: "#2c3e50",
-    marginBottom: "15px",
-  },
-  emptyText: {
-    color: "#7f8c8d",
-    fontSize: "1.1rem",
-    marginBottom: "30px",
-    lineHeight: 1.6,
-  },
-  emptyButton: {
-    backgroundColor: "#667eea",
-    color: "white",
-    padding: "14px 35px",
-    borderRadius: "50px",
-    textDecoration: "none",
-    fontWeight: "bold",
-    display: "inline-block",
-    boxShadow: "0 4px 15px rgba(102,126,234,0.3)",
-    transition: "all 0.3s",
-  },
-  bookingsGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(400px, 1fr))",
-    gap: "25px",
-  },
-  bookingCard: {
-    backgroundColor: "white",
-    borderRadius: "15px",
-    overflow: "hidden",
-    boxShadow: "0 2px 10px rgba(0,0,0,0.08)",
-    transition: "transform 0.3s, box-shadow 0.3s",
-  },
-  cardHeader: {
-    padding: "20px",
-    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-    color: "white",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-  routeInfo: {
-    flex: 1,
-  },
-  route: {
-    fontSize: "1.3rem",
-    marginBottom: "8px",
-    fontWeight: "bold",
-  },
-  dateTime: {
-    opacity: 0.95,
-    fontSize: "0.95rem",
-  },
-  statusBadge: {
-    color: "white",
-    padding: "8px 16px",
-    borderRadius: "20px",
-    fontSize: "0.85rem",
-    fontWeight: "bold",
-    whiteSpace: "nowrap",
-  },
-  cardBody: {
-    padding: "25px",
-  },
-  driverSection: {
-    display: "flex",
-    alignItems: "center",
-    gap: "15px",
-    marginBottom: "20px",
-    padding: "15px",
-    backgroundColor: "#f8f9fa",
-    borderRadius: "10px",
-  },
-  driverAvatar: {
-    width: "50px",
-    height: "50px",
-    borderRadius: "50%",
-    backgroundColor: "#667eea",
-    color: "white",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "1.5rem",
-    fontWeight: "bold",
-  },
-  driverInfo: {
-    flex: 1,
-  },
-  driverName: {
-    fontSize: "1.1rem",
-    fontWeight: "bold",
-    color: "#2c3e50",
-    marginBottom: "5px",
-  },
-  vehicleInfo: {
-    color: "#7f8c8d",
-    fontSize: "0.95rem",
-  },
-  detailsGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(2, 1fr)",
-    gap: "15px",
-    marginBottom: "20px",
-  },
-  detailItem: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "5px",
-  },
-  detailLabel: {
-    color: "#7f8c8d",
-    fontSize: "0.9rem",
-  },
-  detailValue: {
-    color: "#2c3e50",
-    fontWeight: "600",
-  },
-  fareValue: {
-    color: "#27ae60",
-    fontWeight: "bold",
-    fontSize: "1.2rem",
-  },
-  bookingFooter: {
-    paddingTop: "15px",
-    borderTop: "1px solid #e0e0e0",
-  },
-  bookingTime: {
-    color: "#95a5a6",
-    fontSize: "0.85rem",
-  },
 };
 
 export default PassengerDashboard;
