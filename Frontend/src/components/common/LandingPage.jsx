@@ -60,6 +60,18 @@ const LandingPage = () => {
             </div>
           </div>
           <div className="hero-visual">
+            {/* Car Image Wrapper */}
+            <div className="car-wrapper">
+              {/* NOTE: Please ensure the file 'image_2849e3-Photoroom.png' is inside your 'public' folder.
+                 I am using .png extension as you confirmed it has the background removed (transparency).
+              */}
+              <img
+                src="/image_2849e3-Photoroom.png"
+                alt="Premium SUV"
+                className="car-image"
+              />
+            </div>
+
             {/* Abstract Visual Card */}
             <div className="visual-card main-card">
               <div className="card-row">
@@ -77,6 +89,7 @@ const LandingPage = () => {
                 <span>👤 Verified Driver</span>
               </div>
             </div>
+
             <div className="visual-card float-card">
               <span className="emoji">🎉</span>
               <div>
@@ -351,13 +364,14 @@ const LandingPage = () => {
       <style>{`
         .landing-page { width: 100%; overflow-x: hidden; }
         
-        /* Hero Styles (Preserved & Adjusted) */
+        /* Hero Styles */
         .hero {
           position: relative;
           padding: 6rem 0;
           background: radial-gradient(circle at top right, #DBEAFE 0%, #F3F4F6 40%);
+          overflow: hidden;
         }
-        .hero-content { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+        .hero-content { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; position: relative; z-index: 2; }
         .hero-badge { display: inline-block; padding: 0.5rem 1rem; background: #ECFDF5; color: var(--secondary-dark); border-radius: 50px; font-size: 0.875rem; font-weight: 600; margin-bottom: 1.5rem; border: 1px solid #A7F3D0; }
         h1 { font-size: 3.5rem; letter-spacing: -0.03em; margin-bottom: 1.5rem; line-height: 1.1; color: var(--dark); }
         .text-gradient { background: linear-gradient(to right, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
@@ -365,10 +379,43 @@ const LandingPage = () => {
         .hero-buttons { display: flex; gap: 1rem; }
         .btn-lg { padding: 1rem 2rem; font-size: 1.05rem; }
 
-        /* Visual Card Logic */
+        /* Visual Section */
         .hero-visual { position: relative; height: 450px; }
-        .visual-card { background: white; border-radius: 24px; box-shadow: var(--shadow-lg); position: absolute; border: 1px solid var(--border); }
-        .main-card { width: 340px; padding: 2rem; top: 45%; left: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; gap: 1.5rem; z-index: 10; }
+        
+        /* Car Wrapper Styling */
+        .car-wrapper {
+          position: absolute;
+          left: -18%; /* Moved slightly left to accomodate larger SUV */
+          top: 8%;   /* Raised slightly to show more of the car */
+          width: 550px; /* Increased width for the larger SUV profile */
+          z-index: 1;
+          animation: float 6s ease-in-out infinite;
+        }
+        .car-image {
+          width: 100%;
+          height: auto;
+          margin-top: 150px; /* Added margin to lower the car image */
+          /* No blend mode needed for transparent PNG */
+          filter: drop-shadow(0 15px 25px rgba(0,0,0,0.2));
+        }
+
+        /* Cards */
+        .visual-card { background: white; border-radius: 24px; box-shadow: var(--shadow-lg); position: absolute; border: 1px solid var(--border); margin-bottom: 5rem; }
+        
+        /* Booking Card (Main) */
+        .main-card { 
+          width: 340px; 
+          padding: 2rem; 
+          top: 30%; 
+          left: auto; 
+          right: 0; 
+          transform: translateY(-50%); 
+          display: flex; 
+          flex-direction: column; 
+          gap: 2.5rem; 
+          z-index: 10; 
+        }
+        
         .card-row { display: flex; align-items: center; justify-content: space-between; position: relative; height: 20px; }
         .circle { width: 16px; height: 16px; background: var(--primary); border-radius: 50%; z-index: 2; box-shadow: 0 0 0 4px #DBEAFE; }
         .circle.dest { background: var(--secondary); box-shadow: 0 0 0 4px #D1FAE5; }
@@ -376,7 +423,18 @@ const LandingPage = () => {
         .card-info { display: flex; justify-content: space-between; font-weight: 700; color: var(--dark); font-size: 1.1rem; }
         .card-meta { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-light); background: #F9FAFB; padding: 0.75rem; border-radius: 12px; }
         
-        .float-card { bottom: 15%; right: 5%; padding: 1rem 1.5rem; display: flex; align-items: center; gap: 1rem; animation: float 4s ease-in-out infinite; z-index: 11; }
+        /* You Saved Card */
+        .float-card { 
+          bottom: 40px; 
+          right: -20px; 
+          padding: 1rem 1.5rem; 
+          display: flex; 
+          align-items: center; 
+          gap: 1rem; 
+          z-index: 11; 
+          animation: float 5s ease-in-out infinite; 
+          animation-delay: 1s; 
+        }
         .float-title { font-weight: 700; color: var(--secondary-dark); }
         .float-subtitle { font-size: 0.8rem; color: var(--text-light); }
         .emoji { font-size: 2rem; }
