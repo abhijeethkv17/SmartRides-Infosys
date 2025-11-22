@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom"; // Added useNavigate
 import { rideService } from "../../services/rideService";
 import { bookingService } from "../../services/bookingService";
 
@@ -9,6 +9,7 @@ const DriverDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("rides");
+  const navigate = useNavigate(); // Hook for navigation
 
   useEffect(() => {
     fetchData();
@@ -26,6 +27,26 @@ const DriverDashboard = () => {
       setError("Failed to load dashboard data");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteRide = async (rideId) => {
+    if (
+      window.confirm(
+        "Are you sure you want to delete this ride? This action cannot be undone."
+      )
+    ) {
+      try {
+        const response = await rideService.deleteRide(rideId);
+        if (response.success) {
+          setRides(rides.filter((ride) => ride.id !== rideId));
+          alert("Ride deleted successfully");
+        } else {
+          alert(response.message || "Failed to delete ride");
+        }
+      } catch (err) {
+        alert(err.response?.data?.message || "Failed to delete ride");
+      }
     }
   };
 
@@ -90,8 +111,9 @@ const DriverDashboard = () => {
 
         {error && <div className="alert-error mb-4">{error}</div>}
 
-        {/* Stats */}
+        {/* Stats Grid - Keep existing stats code here */}
         <div className="stats-grid">
+          {/* ... (Existing stat cards code) ... */}
           <div className="stat-card">
             <div className="stat-icon-wrapper">
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -199,6 +221,7 @@ const DriverDashboard = () => {
                       <th>Stats</th>
                       <th>Price</th>
                       <th>Status</th>
+                      <th style={{ textAlign: "right" }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -219,6 +242,52 @@ const DriverDashboard = () => {
                           <span className={getBadgeClass(ride.status)}>
                             {ride.status}
                           </span>
+                        </td>
+                        <td style={{ textAlign: "right" }}>
+                          <div className="flex gap-2 justify-end">
+                            <button
+                              onClick={() =>
+                                navigate(`/driver/edit-ride/${ride.id}`)
+                              }
+                              className="btn-icon text-primary"
+                              title="Edit Ride"
+                            >
+                              <svg
+                                width="20"
+                                height="20"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth="2"
+                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={() => handleDeleteRide(ride.id)}
+                              className="btn-icon text-danger"
+                              title="Delete Ride"
+                            >
+                              <svg
+                                width="20"
+                                height="20"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth="2"
+                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                />
+                              </svg>
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -285,6 +354,9 @@ const DriverDashboard = () => {
         .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
         .empty-state { text-align: center; padding: 4rem; color: var(--text-light); background: white; border-radius: var(--radius); border: 1px dashed var(--border); }
         .text-success { color: var(--secondary-dark); }
+        .btn-icon { background: none; border: none; cursor: pointer; padding: 0.25rem; transition: transform 0.2s; }
+        .btn-icon:hover { transform: scale(1.1); }
+        .text-danger { color: #EF4444; }
       `}</style>
     </div>
   );

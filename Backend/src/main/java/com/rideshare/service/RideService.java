@@ -43,6 +43,39 @@ public class RideService {
         return RideResponse.fromRide(savedRide);
     }
     
+    public RideResponse updateRide(Long id, RideRequest request) {
+        User currentUser = userService.getCurrentUser();
+        Ride ride = rideRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Ride not found"));
+
+        if (!ride.getDriver().getId().equals(currentUser.getId())) {
+            throw new RuntimeException("You are not authorized to edit this ride");
+        }
+
+        ride.setSource(request.getSource());
+        ride.setDestination(request.getDestination());
+        ride.setDepartureDateTime(request.getDepartureDateTime());
+        // Assuming updating available seats resets the capacity logic for simplicity in Milestone 1
+        ride.setAvailableSeats(request.getAvailableSeats());
+        ride.setTotalSeats(request.getAvailableSeats()); 
+        ride.setPricePerKm(request.getPricePerKm());
+        
+        Ride updatedRide = rideRepository.save(ride);
+        return RideResponse.fromRide(updatedRide);
+    }
+
+    public void deleteRide(Long id) {
+        User currentUser = userService.getCurrentUser();
+        Ride ride = rideRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Ride not found"));
+
+        if (!ride.getDriver().getId().equals(currentUser.getId())) {
+            throw new RuntimeException("You are not authorized to delete this ride");
+        }
+
+        rideRepository.delete(ride);
+    }
+    
     public List<RideResponse> searchRides(String source, String destination, LocalDateTime date) {
         if (date == null) {
             date = LocalDateTime.now();

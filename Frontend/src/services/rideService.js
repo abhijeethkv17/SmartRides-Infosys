@@ -6,6 +6,16 @@ export const rideService = {
     return response.data;
   },
 
+  updateRide: async (id, rideData) => {
+    const response = await api.put(`/rides/${id}`, rideData);
+    return response.data;
+  },
+
+  deleteRide: async (id) => {
+    const response = await api.delete(`/rides/${id}`);
+    return response.data;
+  },
+
   searchRides: async (source, destination, date = null) => {
     const params = { source, destination };
     if (date) {

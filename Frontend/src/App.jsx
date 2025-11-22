@@ -13,6 +13,7 @@ import Login from "./components/auth/Login";
 import Register from "./components/auth/Register";
 import DriverDashboard from "./components/driver/DriverDashboard";
 import PostRide from "./components/driver/PostRide";
+import EditRide from "./components/driver/EditRide"; // Import the new component
 import PassengerDashboard from "./components/passenger/PassengerDashboard";
 import SearchRides from "./components/passenger/SearchRides";
 import UserProfile from "./components/profile/UserProfile";
@@ -44,6 +45,16 @@ function App() {
               element={
                 <PrivateRoute role={ROLE.DRIVER}>
                   <PostRide />
+                </PrivateRoute>
+              }
+            />
+
+            {/* New Route for Edit Ride */}
+            <Route
+              path="/driver/edit-ride/:id"
+              element={
+                <PrivateRoute role={ROLE.DRIVER}>
+                  <EditRide />
                 </PrivateRoute>
               }
             />

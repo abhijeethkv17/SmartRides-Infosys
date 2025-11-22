@@ -40,6 +40,30 @@ public class RideController {
                     .body(new ApiResponse(false, e.getMessage()));
         }
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateRide(@PathVariable Long id, @Valid @RequestBody RideRequest request) {
+        try {
+            RideResponse ride = rideService.updateRide(id, request);
+            return ResponseEntity.ok(new ApiResponse(true, "Ride updated successfully", ride));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse(false, e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteRide(@PathVariable Long id) {
+        try {
+            rideService.deleteRide(id);
+            return ResponseEntity.ok(new ApiResponse(true, "Ride deleted successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse(false, e.getMessage()));
+        }
+    }
+    
+    // ... (Keep existing searchRides, getDriverRides, getAllActiveRides, getRideById, bookRide, getPassengerBookings, getDriverBookings methods as they are) ...
     
     @GetMapping("/search")
     public ResponseEntity<?> searchRides(
