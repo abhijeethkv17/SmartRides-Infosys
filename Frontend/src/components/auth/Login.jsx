@@ -208,7 +208,7 @@ const Login = () => {
             <button
               type="button"
               onClick={handleResendOTP}
-              className="text-primary text-sm mt-4 text-center w-full hover:underline"
+              className="btn btn-primary text-sm mt-4 text-center w-full hover:underline"
             >
               Resend Code
             </button>
