@@ -55,7 +55,6 @@ public class RideService {
         ride.setSource(request.getSource());
         ride.setDestination(request.getDestination());
         ride.setDepartureDateTime(request.getDepartureDateTime());
-        // Assuming updating available seats resets the capacity logic for simplicity in Milestone 1
         ride.setAvailableSeats(request.getAvailableSeats());
         ride.setTotalSeats(request.getAvailableSeats()); 
         ride.setPricePerKm(request.getPricePerKm());
@@ -74,6 +73,56 @@ public class RideService {
         }
 
         rideRepository.delete(ride);
+    }
+    
+    /**
+     * Mark a ride as COMPLETED by the driver
+     */
+    public RideResponse completeRide(Long id) {
+        User currentUser = userService.getCurrentUser();
+        Ride ride = rideRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Ride not found"));
+
+        if (!ride.getDriver().getId().equals(currentUser.getId())) {
+            throw new RuntimeException("You are not authorized to complete this ride");
+        }
+        
+        if (!ride.getStatus().equals("ACTIVE")) {
+            throw new RuntimeException("Only active rides can be marked as completed");
+        }
+
+        ride.setStatus("COMPLETED");
+        Ride completedRide = rideRepository.save(ride);
+        
+        System.out.println("Driver manually completed ride #" + id);
+        
+        return RideResponse.fromRide(completedRide);
+    }
+    
+    /**
+     * Cancel a ride by the driver
+     */
+    public RideResponse cancelRide(Long id) {
+        User currentUser = userService.getCurrentUser();
+        Ride ride = rideRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Ride not found"));
+
+        if (!ride.getDriver().getId().equals(currentUser.getId())) {
+            throw new RuntimeException("You are not authorized to cancel this ride");
+        }
+        
+        if (!ride.getStatus().equals("ACTIVE")) {
+            throw new RuntimeException("Only active rides can be cancelled");
+        }
+
+        ride.setStatus("CANCELLED");
+        Ride cancelledRide = rideRepository.save(ride);
+        
+        System.out.println("Driver cancelled ride #" + id);
+        
+        // TODO: Send notification emails to all passengers who booked this ride
+        
+        return RideResponse.fromRide(cancelledRide);
     }
     
     public List<RideResponse> searchRides(String source, String destination, LocalDateTime date) {

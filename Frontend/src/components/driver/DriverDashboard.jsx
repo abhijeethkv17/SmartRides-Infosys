@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom"; // Added useNavigate
+import { Link, useNavigate } from "react-router-dom";
 import { rideService } from "../../services/rideService";
 import { bookingService } from "../../services/bookingService";
 
@@ -9,7 +9,7 @@ const DriverDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("rides");
-  const navigate = useNavigate(); // Hook for navigation
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchData();
@@ -50,6 +50,51 @@ const DriverDashboard = () => {
     }
   };
 
+  const handleCompleteRide = async (rideId) => {
+    if (window.confirm("Mark this ride as completed?")) {
+      try {
+        const response = await rideService.completeRide(rideId);
+        if (response.success) {
+          // Update the ride status in the local state
+          setRides(
+            rides.map((ride) =>
+              ride.id === rideId ? { ...ride, status: "COMPLETED" } : ride
+            )
+          );
+          alert("Ride marked as completed!");
+        } else {
+          alert(response.message || "Failed to complete ride");
+        }
+      } catch (err) {
+        alert(err.response?.data?.message || "Failed to complete ride");
+      }
+    }
+  };
+
+  const handleCancelRide = async (rideId) => {
+    if (
+      window.confirm(
+        "Are you sure you want to cancel this ride? Passengers will be notified."
+      )
+    ) {
+      try {
+        const response = await rideService.cancelRide(rideId);
+        if (response.success) {
+          setRides(
+            rides.map((ride) =>
+              ride.id === rideId ? { ...ride, status: "CANCELLED" } : ride
+            )
+          );
+          alert("Ride cancelled successfully");
+        } else {
+          alert(response.message || "Failed to cancel ride");
+        }
+      } catch (err) {
+        alert(err.response?.data?.message || "Failed to cancel ride");
+      }
+    }
+  };
+
   const formatDateTime = (dateTime) => {
     return new Date(dateTime).toLocaleString("en-IN", {
       day: "2-digit",
@@ -72,6 +117,10 @@ const DriverDashboard = () => {
       default:
         return "badge";
     }
+  };
+
+  const isRideInPast = (departureDateTime) => {
+    return new Date(departureDateTime) < new Date();
   };
 
   if (loading)
@@ -111,9 +160,8 @@ const DriverDashboard = () => {
 
         {error && <div className="alert-error mb-4">{error}</div>}
 
-        {/* Stats Grid - Keep existing stats code here */}
+        {/* Stats Grid */}
         <div className="stats-grid">
-          {/* ... (Existing stat cards code) ... */}
           <div className="stat-card">
             <div className="stat-icon-wrapper">
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -245,28 +293,75 @@ const DriverDashboard = () => {
                         </td>
                         <td style={{ textAlign: "right" }}>
                           <div className="flex gap-2 justify-end">
-                            <button
-                              onClick={() =>
-                                navigate(`/driver/edit-ride/${ride.id}`)
-                              }
-                              className="btn-icon text-primary"
-                              title="Edit Ride"
-                            >
-                              <svg
-                                width="20"
-                                height="20"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth="2"
-                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                                />
-                              </svg>
-                            </button>
+                            {ride.status === "ACTIVE" && (
+                              <>
+                                {/* Show Complete button if ride time has passed */}
+                                {isRideInPast(ride.departureDateTime) && (
+                                  <button
+                                    onClick={() => handleCompleteRide(ride.id)}
+                                    className="btn-icon text-success"
+                                    title="Mark as Completed"
+                                  >
+                                    <svg
+                                      width="20"
+                                      height="20"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth="2"
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                      />
+                                    </svg>
+                                  </button>
+                                )}
+                                <button
+                                  onClick={() =>
+                                    navigate(`/driver/edit-ride/${ride.id}`)
+                                  }
+                                  className="btn-icon text-primary"
+                                  title="Edit Ride"
+                                >
+                                  <svg
+                                    width="20"
+                                    height="20"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth="2"
+                                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                    />
+                                  </svg>
+                                </button>
+                                <button
+                                  onClick={() => handleCancelRide(ride.id)}
+                                  className="btn-icon text-warning"
+                                  title="Cancel Ride"
+                                >
+                                  <svg
+                                    width="20"
+                                    height="20"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth="2"
+                                      d="M6 18L18 6M6 6l12 12"
+                                    />
+                                  </svg>
+                                </button>
+                              </>
+                            )}
                             <button
                               onClick={() => handleDeleteRide(ride.id)}
                               className="btn-icon text-danger"
@@ -354,6 +449,7 @@ const DriverDashboard = () => {
         .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
         .empty-state { text-align: center; padding: 4rem; color: var(--text-light); background: white; border-radius: var(--radius); border: 1px dashed var(--border); }
         .text-success { color: var(--secondary-dark); }
+        .text-warning { color: #F59E0B; }
         .btn-icon { background: none; border: none; cursor: pointer; padding: 0.25rem; transition: transform 0.2s; }
         .btn-icon:hover { transform: scale(1.1); }
         .text-danger { color: #EF4444; }

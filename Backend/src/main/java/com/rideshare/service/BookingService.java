@@ -30,6 +30,12 @@ public class BookingService {
     @Autowired
     private EmailService emailService;
     
+    @Autowired
+    private DistanceCalculationService distanceCalculationService;
+    
+    @Autowired
+    private FareCalculationService fareCalculationService;
+    
     @Transactional
     public BookingResponse createBooking(BookingRequest request) {
         User passenger = userService.getCurrentUser();
@@ -49,8 +55,34 @@ public class BookingService {
             throw new RuntimeException("Driver cannot book their own ride");
         }
         
-        // Calculate fare
-        Double estimatedFare = request.getDistanceKm() * ride.getPricePerKm() * request.getSeatsBooked();
+        // Calculate actual distance using Google Maps API
+        Double actualDistance;
+        try {
+            // If pickup and drop locations are provided, calculate distance between them
+            // Otherwise, use the ride's source and destination
+            String origin = request.getPickupLocation() != null && !request.getPickupLocation().isEmpty() 
+                    ? request.getPickupLocation() : ride.getSource();
+            String destination = request.getDropLocation() != null && !request.getDropLocation().isEmpty() 
+                    ? request.getDropLocation() : ride.getDestination();
+            
+            actualDistance = distanceCalculationService.calculateDistance(origin, destination);
+            
+            System.out.println("Calculated distance from " + origin + " to " + destination + ": " + actualDistance + " km");
+            
+        } catch (Exception e) {
+            // If distance calculation fails, fall back to user-provided distance
+            System.err.println("Failed to calculate distance, using provided distance: " + e.getMessage());
+            actualDistance = request.getDistanceKm();
+        }
+        
+        // Calculate fare using the fare calculation service
+        Double estimatedFare = fareCalculationService.calculateFare(
+                actualDistance, 
+                ride.getPricePerKm(), 
+                request.getSeatsBooked()
+        );
+        
+        System.out.println("Calculated fare: ₹" + estimatedFare + " for " + actualDistance + "km @ ₹" + ride.getPricePerKm() + "/km");
         
         Booking booking = new Booking();
         booking.setRide(ride);

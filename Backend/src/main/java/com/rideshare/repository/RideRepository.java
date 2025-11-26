@@ -17,6 +17,12 @@ public interface RideRepository extends JpaRepository<Ride, Long> {
     
     List<Ride> findByStatusOrderByDepartureDateTimeAsc(String status);
     
+    // Find rides by status where departure time is before a certain time
+    List<Ride> findByStatusAndDepartureDateTimeBefore(String status, LocalDateTime dateTime);
+    
+    // Find rides between two dates
+    List<Ride> findByStatusAndDepartureDateTimeBetween(String status, LocalDateTime start, LocalDateTime end);
+    
     @Query("SELECT r FROM Ride r WHERE " +
            "LOWER(r.source) LIKE LOWER(CONCAT('%', :source, '%')) AND " +
            "LOWER(r.destination) LIKE LOWER(CONCAT('%', :destination, '%')) AND " +

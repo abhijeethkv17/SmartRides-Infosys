@@ -63,7 +63,33 @@ public class RideController {
         }
     }
     
-    // ... (Keep existing searchRides, getDriverRides, getAllActiveRides, getRideById, bookRide, getPassengerBookings, getDriverBookings methods as they are) ...
+    /**
+     * Mark ride as COMPLETED
+     */
+    @PutMapping("/{id}/complete")
+    public ResponseEntity<?> completeRide(@PathVariable Long id) {
+        try {
+            RideResponse ride = rideService.completeRide(id);
+            return ResponseEntity.ok(new ApiResponse(true, "Ride marked as completed", ride));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse(false, e.getMessage()));
+        }
+    }
+    
+    /**
+     * Cancel ride
+     */
+    @PutMapping("/{id}/cancel")
+    public ResponseEntity<?> cancelRide(@PathVariable Long id) {
+        try {
+            RideResponse ride = rideService.cancelRide(id);
+            return ResponseEntity.ok(new ApiResponse(true, "Ride cancelled successfully", ride));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse(false, e.getMessage()));
+        }
+    }
     
     @GetMapping("/search")
     public ResponseEntity<?> searchRides(

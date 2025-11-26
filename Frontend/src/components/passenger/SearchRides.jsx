@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { rideService } from "../../services/rideService";
 import { bookingService } from "../../services/bookingService";
+import { distanceService } from "../../services/distanceService";
 
 const SearchRides = () => {
-  // ... State and logic remains identical ...
   const [searchParams, setSearchParams] = useState({
     source: "",
     destination: "",
@@ -18,12 +18,15 @@ const SearchRides = () => {
     dropLocation: "",
     distanceKm: "",
   });
+  const [fareEstimate, setFareEstimate] = useState(null);
+  const [calculatingFare, setCalculatingFare] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handleSearchChange = (e) =>
     setSearchParams({ ...searchParams, [e.target.name]: e.target.value });
+
   const handleBookingChange = (e) =>
     setBookingData({ ...bookingData, [e.target.name]: e.target.value });
 
@@ -52,6 +55,51 @@ const SearchRides = () => {
     }
   };
 
+  // Calculate fare when pickup/drop locations or seats change
+  useEffect(() => {
+    const calculateFare = async () => {
+      if (
+        selectedRide &&
+        bookingData.pickupLocation &&
+        bookingData.dropLocation &&
+        bookingData.seatsBooked
+      ) {
+        setCalculatingFare(true);
+        try {
+          const response = await distanceService.getFareEstimate(
+            bookingData.pickupLocation,
+            bookingData.dropLocation,
+            selectedRide.pricePerKm,
+            parseInt(bookingData.seatsBooked)
+          );
+
+          if (response.success) {
+            setFareEstimate(response.data);
+            // Update distance in booking data
+            setBookingData((prev) => ({
+              ...prev,
+              distanceKm: response.data.distanceKm,
+            }));
+          }
+        } catch (err) {
+          console.error("Failed to calculate fare:", err);
+          setFareEstimate(null);
+        } finally {
+          setCalculatingFare(false);
+        }
+      }
+    };
+
+    // Debounce the calculation
+    const timer = setTimeout(calculateFare, 800);
+    return () => clearTimeout(timer);
+  }, [
+    bookingData.pickupLocation,
+    bookingData.dropLocation,
+    bookingData.seatsBooked,
+    selectedRide,
+  ]);
+
   const handleBookRide = async (e) => {
     e.preventDefault();
     setError("");
@@ -62,7 +110,8 @@ const SearchRides = () => {
         seatsBooked: parseInt(bookingData.seatsBooked),
         pickupLocation: bookingData.pickupLocation,
         dropLocation: bookingData.dropLocation,
-        distanceKm: parseFloat(bookingData.distanceKm),
+        distanceKm:
+          fareEstimate?.distanceKm || parseFloat(bookingData.distanceKm),
       };
       const response = await bookingService.createBooking(payload);
       if (response.success) {
@@ -77,16 +126,6 @@ const SearchRides = () => {
   };
 
   const formatDateTime = (dateTime) => new Date(dateTime).toLocaleString();
-  const calculateEstimatedFare = () => {
-    if (selectedRide && bookingData.distanceKm && bookingData.seatsBooked) {
-      return (
-        parseFloat(bookingData.distanceKm) *
-        selectedRide.pricePerKm *
-        parseInt(bookingData.seatsBooked)
-      ).toFixed(2);
-    }
-    return 0;
-  };
 
   return (
     <div className="page-container">
@@ -181,6 +220,7 @@ const SearchRides = () => {
                         dropLocation: ride.destination,
                         distanceKm: "",
                       });
+                      setFareEstimate(null);
                     }}
                     className="btn btn-primary"
                     style={{ width: "100%" }}
@@ -200,7 +240,10 @@ const SearchRides = () => {
               <div className="modal-header">
                 <h3>Confirm Booking</h3>
                 <button
-                  onClick={() => setSelectedRide(null)}
+                  onClick={() => {
+                    setSelectedRide(null);
+                    setFareEstimate(null);
+                  }}
                   className="close-btn"
                 >
                   &times;
@@ -221,52 +264,99 @@ const SearchRides = () => {
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Pickup</label>
+                  <label className="form-label">Pickup Location</label>
                   <input
                     type="text"
                     name="pickupLocation"
                     value={bookingData.pickupLocation}
                     onChange={handleBookingChange}
+                    placeholder="Enter your pickup location"
                     required
                     className="form-input"
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Drop</label>
+                  <label className="form-label">Drop Location</label>
                   <input
                     type="text"
                     name="dropLocation"
                     value={bookingData.dropLocation}
                     onChange={handleBookingChange}
-                    required
-                    className="form-input"
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Distance (km)</label>
-                  <input
-                    type="number"
-                    name="distanceKm"
-                    value={bookingData.distanceKm}
-                    onChange={handleBookingChange}
-                    min="1"
-                    step="0.1"
+                    placeholder="Enter your drop location"
                     required
                     className="form-input"
                   />
                 </div>
 
-                <div className="fare-summary">
-                  <span>Total Fare:</span>
-                  <span className="fare-amount">
-                    ₹{calculateEstimatedFare()}
-                  </span>
-                </div>
+                {/* Fare Breakdown Display */}
+                {calculatingFare && (
+                  <div className="fare-calculating">
+                    <div className="spinner-small"></div>
+                    <span>Calculating fare...</span>
+                  </div>
+                )}
+
+                {fareEstimate && !calculatingFare && (
+                  <div className="fare-breakdown-card">
+                    <div className="fare-header">Fare Breakdown</div>
+                    <div className="fare-row">
+                      <span>Distance:</span>
+                      <span className="fare-value">
+                        {fareEstimate.distanceKm} km
+                      </span>
+                    </div>
+                    <div className="fare-row">
+                      <span>Estimated Time:</span>
+                      <span className="fare-value">
+                        {fareEstimate.durationMinutes} mins
+                      </span>
+                    </div>
+                    <div className="fare-row">
+                      <span>Base Fare:</span>
+                      <span className="fare-value">
+                        ₹{fareEstimate.baseFare}
+                      </span>
+                    </div>
+                    <div className="fare-row">
+                      <span>
+                        Distance Fare ({fareEstimate.distanceKm}km @ ₹
+                        {fareEstimate.pricePerKm}/km):
+                      </span>
+                      <span className="fare-value">
+                        ₹{fareEstimate.distanceFare.toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="fare-row">
+                      <span>Seats:</span>
+                      <span className="fare-value">
+                        × {fareEstimate.seatsBooked}
+                      </span>
+                    </div>
+                    <div className="fare-row">
+                      <span>Booking Fee:</span>
+                      <span className="fare-value">
+                        ₹{fareEstimate.bookingFee}
+                      </span>
+                    </div>
+                    {fareEstimate.minimumFareApplied && (
+                      <div className="fare-note">* Minimum fare applied</div>
+                    )}
+                    <div className="fare-total">
+                      <span>Total Fare:</span>
+                      <span className="fare-amount">
+                        ₹{fareEstimate.totalFare}
+                      </span>
+                    </div>
+                  </div>
+                )}
 
                 <div className="flex gap-2 mt-4">
                   <button
                     type="button"
-                    onClick={() => setSelectedRide(null)}
+                    onClick={() => {
+                      setSelectedRide(null);
+                      setFareEstimate(null);
+                    }}
                     className="btn btn-secondary"
                     style={{ flex: 1 }}
                   >
@@ -274,7 +364,7 @@ const SearchRides = () => {
                   </button>
                   <button
                     type="submit"
-                    disabled={loading}
+                    disabled={loading || calculatingFare || !fareEstimate}
                     className="btn btn-primary"
                     style={{ flex: 1 }}
                   >
@@ -297,13 +387,24 @@ const SearchRides = () => {
         
         /* Modal */
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(2px); }
-        .modal-content { background: white; width: 90%; max-width: 500px; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-lg); }
+        .modal-content { background: white; width: 90%; max-width: 550px; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-lg); max-height: 90vh; overflow-y: auto; }
         .modal-header { padding: 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
         .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-light); }
         .modal-body { padding: 1.5rem; }
-        .fare-summary { display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 1.1rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--border); }
-        .fare-amount { color: var(--secondary-dark); }
         
+        /* Fare Breakdown */
+        .fare-calculating { display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background: #F3F4F6; border-radius: 8px; margin: 1rem 0; }
+        .spinner-small { width: 20px; height: 20px; border: 2px solid #E5E7EB; border-top: 2px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+        
+        .fare-breakdown-card { background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 12px; padding: 1.25rem; margin: 1rem 0; }
+        .fare-header { font-weight: 700; font-size: 1rem; color: var(--dark); margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 2px solid #E5E7EB; }
+        .fare-row { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; font-size: 0.9rem; color: var(--text); }
+        .fare-value { font-weight: 600; color: var(--dark); }
+        .fare-note { font-size: 0.8rem; color: #F59E0B; margin-top: 0.5rem; font-style: italic; }
+        .fare-total { display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; margin-top: 1rem; border-top: 2px solid #E5E7EB; font-weight: 700; font-size: 1.1rem; }
+        .fare-amount { color: var(--secondary-dark); font-size: 1.25rem; }
+        
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         @media (max-width: 768px) { .search-bar-grid { grid-template-columns: 1fr; } }
       `}</style>
     </div>
