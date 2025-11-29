@@ -1,14 +1,28 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { bookingService } from "../../services/bookingService";
 
 const PassengerDashboard = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const location = useLocation();
+  const [successMessage, setSuccessMessage] = useState(
+    location.state?.message || ""
+  );
 
   useEffect(() => {
     fetchBookings();
+
+    // Clear message from state after 5 seconds
+    if (successMessage) {
+      const timer = setTimeout(() => {
+        setSuccessMessage("");
+        // Clear history state to prevent message from showing on refresh
+        window.history.replaceState({}, document.title);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
   }, []);
 
   const fetchBookings = async () => {
@@ -82,6 +96,19 @@ const PassengerDashboard = () => {
             Find a Ride
           </Link>
         </div>
+
+        {/* Success Message Banner */}
+        {successMessage && (
+          <div className="alert-success mb-6 fade-in">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">🎉</span>
+              <div>
+                <strong className="block font-bold">Booking Confirmed!</strong>
+                <span>{successMessage}</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {error && <div className="alert-error mb-4">{error}</div>}
 
@@ -276,6 +303,9 @@ const PassengerDashboard = () => {
         .detail-item .label { font-size: 0.75rem; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
         .detail-item .value { font-size: 0.95rem; color: var(--dark); font-weight: 500; }
         .bg-gray-50 { background-color: #F9FAFB; }
+        .alert-success { background: #ECFDF5; color: #065F46; padding: 1rem; border-radius: var(--radius); border: 1px solid #A7F3D0; }
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
     </div>
   );

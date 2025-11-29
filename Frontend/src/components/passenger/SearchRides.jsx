@@ -28,8 +28,6 @@ const SearchRides = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // ... (previous search and fare calculation logic remains the same)
-
   const handleSearchChange = (e) =>
     setSearchParams({ ...searchParams, [e.target.name]: e.target.value });
 
@@ -106,7 +104,7 @@ const SearchRides = () => {
   const handleBookRide = async (e) => {
     e.preventDefault();
     setError("");
-    setLoading(true);
+    setProcessingPayment(true);
 
     try {
       // Step 1: Create booking
@@ -128,7 +126,6 @@ const SearchRides = () => {
       const bookingId = bookingResponse.data.id;
 
       // Step 2: Create payment order
-      setProcessingPayment(true);
       const paymentOrderResponse = await paymentService.createPaymentOrder(
         bookingId
       );
@@ -173,25 +170,29 @@ const SearchRides = () => {
       );
 
       if (verificationResponse.success) {
-        alert("Booking and payment successful!");
-        navigate("/passenger/dashboard");
+        // Close modals and navigate
+        setProcessingPayment(false);
+        setSelectedRide(null);
+        navigate("/passenger/dashboard", {
+          state: { message: "Ride booked successfully! Payment Confirmed." },
+        });
+      } else {
+        throw new Error(
+          verificationResponse.message || "Payment verification failed"
+        );
       }
     } catch (err) {
       console.error("Booking/Payment error:", err);
-      setError(
-        err.message ||
-          "Failed to complete booking. Please try again or contact support."
-      );
+      setProcessingPayment(false);
 
-      // If payment was cancelled or failed, show appropriate message
+      // If payment was cancelled, give a specific message
       if (err.message === "Payment cancelled by user") {
+        setError("Payment was cancelled. You can retry booking.");
+      } else {
         setError(
-          "Payment was cancelled. Your booking has been created but not confirmed. Please complete the payment to confirm your booking."
+          err.message || "Failed to complete booking. Please try again."
         );
       }
-    } finally {
-      setLoading(false);
-      setProcessingPayment(false);
     }
   };
 
