@@ -16,6 +16,22 @@ export const rideService = {
     return response.data;
   },
 
+  /**
+   * Mark a ride as completed
+   */
+  completeRide: async (id) => {
+    const response = await api.put(`/rides/${id}/complete`);
+    return response.data;
+  },
+
+  /**
+   * Cancel a ride
+   */
+  cancelRide: async (id) => {
+    const response = await api.put(`/rides/${id}/cancel`);
+    return response.data;
+  },
+
   searchRides: async (source, destination, date = null) => {
     const params = { source, destination };
     if (date) {

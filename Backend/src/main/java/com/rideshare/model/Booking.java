@@ -51,4 +51,8 @@ public class Booking {
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime bookingTime;
+
+    // Added to handle cascading delete of Payments when a Booking is deleted
+    @OneToOne(mappedBy = "booking", cascade = CascadeType.ALL)
+    private Payment payment;
 }
