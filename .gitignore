@@ -1,6 +1,5 @@
 # Dependencies
 node_modules/
-package-lock.json
 
 # Java Build Artifacts (Add this!)
 target/
@@ -8,5 +7,4 @@ Backend/target/
 
 # Environment variables
 .env
-resources/
-Backend/resources/
+Backend/src/main/resources/application.properties
