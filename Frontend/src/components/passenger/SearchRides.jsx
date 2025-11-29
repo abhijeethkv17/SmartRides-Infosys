@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { rideService } from "../../services/rideService";
 import { bookingService } from "../../services/bookingService";
 import { distanceService } from "../../services/distanceService";
+import { paymentService } from "../../services/paymentService";
+import { useAuth } from "../../context/AuthContext";
 
 const SearchRides = () => {
   const [searchParams, setSearchParams] = useState({
@@ -21,8 +23,12 @@ const SearchRides = () => {
   const [fareEstimate, setFareEstimate] = useState(null);
   const [calculatingFare, setCalculatingFare] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [processingPayment, setProcessingPayment] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  // ... (previous search and fare calculation logic remains the same)
 
   const handleSearchChange = (e) =>
     setSearchParams({ ...searchParams, [e.target.name]: e.target.value });
@@ -55,7 +61,6 @@ const SearchRides = () => {
     }
   };
 
-  // Calculate fare when pickup/drop locations or seats change
   useEffect(() => {
     const calculateFare = async () => {
       if (
@@ -75,7 +80,6 @@ const SearchRides = () => {
 
           if (response.success) {
             setFareEstimate(response.data);
-            // Update distance in booking data
             setBookingData((prev) => ({
               ...prev,
               distanceKm: response.data.distanceKm,
@@ -90,7 +94,6 @@ const SearchRides = () => {
       }
     };
 
-    // Debounce the calculation
     const timer = setTimeout(calculateFare, 800);
     return () => clearTimeout(timer);
   }, [
@@ -104,7 +107,9 @@ const SearchRides = () => {
     e.preventDefault();
     setError("");
     setLoading(true);
+
     try {
+      // Step 1: Create booking
       const payload = {
         rideId: selectedRide.id,
         seatsBooked: parseInt(bookingData.seatsBooked),
@@ -113,15 +118,80 @@ const SearchRides = () => {
         distanceKm:
           fareEstimate?.distanceKm || parseFloat(bookingData.distanceKm),
       };
-      const response = await bookingService.createBooking(payload);
-      if (response.success) {
-        alert("Ride booked successfully!");
+
+      const bookingResponse = await bookingService.createBooking(payload);
+
+      if (!bookingResponse.success) {
+        throw new Error(bookingResponse.message || "Failed to create booking");
+      }
+
+      const bookingId = bookingResponse.data.id;
+
+      // Step 2: Create payment order
+      setProcessingPayment(true);
+      const paymentOrderResponse = await paymentService.createPaymentOrder(
+        bookingId
+      );
+
+      if (!paymentOrderResponse.success) {
+        throw new Error("Failed to create payment order");
+      }
+
+      const { orderId, amount, currency, keyId } = paymentOrderResponse.data;
+
+      // Step 3: Initialize Razorpay
+      const razorpayOptions = {
+        key: keyId,
+        amount: amount * 100, // Convert to paise
+        currency: currency,
+        name: "SmartRides",
+        description: `Booking #${bookingId}`,
+        order_id: orderId,
+        prefill: {
+          name: user.name,
+          email: user.email,
+          contact: user.phone,
+        },
+        theme: {
+          color: "#2563eb",
+        },
+      };
+
+      const paymentResponse = await paymentService.initializeRazorpayPayment(
+        razorpayOptions
+      );
+
+      // Step 4: Verify payment
+      const verificationData = {
+        razorpayOrderId: paymentResponse.razorpay_order_id,
+        razorpayPaymentId: paymentResponse.razorpay_payment_id,
+        razorpaySignature: paymentResponse.razorpay_signature,
+      };
+
+      const verificationResponse = await paymentService.verifyPayment(
+        verificationData
+      );
+
+      if (verificationResponse.success) {
+        alert("Booking and payment successful!");
         navigate("/passenger/dashboard");
       }
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to book ride.");
+      console.error("Booking/Payment error:", err);
+      setError(
+        err.message ||
+          "Failed to complete booking. Please try again or contact support."
+      );
+
+      // If payment was cancelled or failed, show appropriate message
+      if (err.message === "Payment cancelled by user") {
+        setError(
+          "Payment was cancelled. Your booking has been created but not confirmed. Please complete the payment to confirm your booking."
+        );
+      }
     } finally {
       setLoading(false);
+      setProcessingPayment(false);
     }
   };
 
@@ -238,13 +308,14 @@ const SearchRides = () => {
           <div className="modal-overlay">
             <div className="modal-content">
               <div className="modal-header">
-                <h3>Confirm Booking</h3>
+                <h3>Confirm Booking & Payment</h3>
                 <button
                   onClick={() => {
                     setSelectedRide(null);
                     setFareEstimate(null);
                   }}
                   className="close-btn"
+                  disabled={processingPayment}
                 >
                   &times;
                 </button>
@@ -261,6 +332,7 @@ const SearchRides = () => {
                     max={selectedRide.availableSeats}
                     required
                     className="form-input"
+                    disabled={processingPayment}
                   />
                 </div>
                 <div className="form-group">
@@ -273,6 +345,7 @@ const SearchRides = () => {
                     placeholder="Enter your pickup location"
                     required
                     className="form-input"
+                    disabled={processingPayment}
                   />
                 </div>
                 <div className="form-group">
@@ -285,10 +358,10 @@ const SearchRides = () => {
                     placeholder="Enter your drop location"
                     required
                     className="form-input"
+                    disabled={processingPayment}
                   />
                 </div>
 
-                {/* Fare Breakdown Display */}
                 {calculatingFare && (
                   <div className="fare-calculating">
                     <div className="spinner-small"></div>
@@ -298,7 +371,7 @@ const SearchRides = () => {
 
                 {fareEstimate && !calculatingFare && (
                   <div className="fare-breakdown-card">
-                    <div className="fare-header">Fare Breakdown</div>
+                    <div className="fare-header">💳 Payment Summary</div>
                     <div className="fare-row">
                       <span>Distance:</span>
                       <span className="fare-value">
@@ -342,11 +415,28 @@ const SearchRides = () => {
                       <div className="fare-note">* Minimum fare applied</div>
                     )}
                     <div className="fare-total">
-                      <span>Total Fare:</span>
+                      <span>Total Amount to Pay:</span>
                       <span className="fare-amount">
                         ₹{fareEstimate.totalFare}
                       </span>
                     </div>
+                    <div
+                      style={{
+                        fontSize: "0.75rem",
+                        color: "#6B7280",
+                        marginTop: "0.5rem",
+                        textAlign: "center",
+                      }}
+                    >
+                      💳 Secure payment via Razorpay
+                    </div>
+                  </div>
+                )}
+
+                {processingPayment && (
+                  <div className="payment-processing">
+                    <div className="spinner-small"></div>
+                    <span>Processing payment...</span>
                   </div>
                 )}
 
@@ -359,16 +449,26 @@ const SearchRides = () => {
                     }}
                     className="btn btn-secondary"
                     style={{ flex: 1 }}
+                    disabled={processingPayment}
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    disabled={loading || calculatingFare || !fareEstimate}
+                    disabled={
+                      loading ||
+                      calculatingFare ||
+                      !fareEstimate ||
+                      processingPayment
+                    }
                     className="btn btn-primary"
                     style={{ flex: 1 }}
                   >
-                    {loading ? "Booking..." : "Confirm"}
+                    {processingPayment
+                      ? "Processing..."
+                      : loading
+                      ? "Booking..."
+                      : "Proceed to Pay"}
                   </button>
                 </div>
               </form>
@@ -385,15 +485,14 @@ const SearchRides = () => {
         .driver-mini-profile { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: var(--bg); border-radius: 8px; }
         .avatar-circle { width: 32px; height: 32px; background: var(--dark); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; }
         
-        /* Modal */
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(2px); }
         .modal-content { background: white; width: 90%; max-width: 550px; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-lg); max-height: 90vh; overflow-y: auto; }
         .modal-header { padding: 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
         .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-light); }
+        .close-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .modal-body { padding: 1.5rem; }
         
-        /* Fare Breakdown */
-        .fare-calculating { display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background: #F3F4F6; border-radius: 8px; margin: 1rem 0; }
+        .fare-calculating, .payment-processing { display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background: #F3F4F6; border-radius: 8px; margin: 1rem 0; }
         .spinner-small { width: 20px; height: 20px; border: 2px solid #E5E7EB; border-top: 2px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
         
         .fare-breakdown-card { background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 12px; padding: 1.25rem; margin: 1rem 0; }
@@ -403,6 +502,8 @@ const SearchRides = () => {
         .fare-note { font-size: 0.8rem; color: #F59E0B; margin-top: 0.5rem; font-style: italic; }
         .fare-total { display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; margin-top: 1rem; border-top: 2px solid #E5E7EB; font-weight: 700; font-size: 1.1rem; }
         .fare-amount { color: var(--secondary-dark); font-size: 1.25rem; }
+        
+        .alert-error { background: #FEF2F2; color: #991B1B; padding: 0.75rem; border-radius: 0.5rem; font-size: 0.875rem; border: 1px solid #FECACA; }
         
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         @media (max-width: 768px) { .search-bar-grid { grid-template-columns: 1fr; } }

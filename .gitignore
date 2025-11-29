@@ -8,3 +8,5 @@ Backend/target/
 
 # Environment variables
 .env
+resources/
+Backend/resources/

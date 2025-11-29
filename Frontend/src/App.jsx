@@ -19,6 +19,7 @@ import SearchRides from "./components/passenger/SearchRides";
 import UserProfile from "./components/profile/UserProfile";
 import { ROLE } from "./utils/constants";
 import "./App.css";
+import PaymentHistory from "./components/payment/PaymentHistory";
 
 function App() {
   return (
@@ -30,7 +31,6 @@ function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-
             <Route
               path="/driver/dashboard"
               element={
@@ -39,7 +39,6 @@ function App() {
                 </PrivateRoute>
               }
             />
-
             <Route
               path="/driver/post-ride"
               element={
@@ -48,7 +47,6 @@ function App() {
                 </PrivateRoute>
               }
             />
-
             {/* New Route for Edit Ride */}
             <Route
               path="/driver/edit-ride/:id"
@@ -58,7 +56,6 @@ function App() {
                 </PrivateRoute>
               }
             />
-
             <Route
               path="/passenger/dashboard"
               element={
@@ -67,12 +64,20 @@ function App() {
                 </PrivateRoute>
               }
             />
-
             <Route
               path="/passenger/search-rides"
               element={
                 <PrivateRoute role={ROLE.PASSENGER}>
                   <SearchRides />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/payments/history"
+              element={
+                <PrivateRoute>
+                  <PaymentHistory />
                 </PrivateRoute>
               }
             />
