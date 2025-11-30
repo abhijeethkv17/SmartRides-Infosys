@@ -1,5 +1,7 @@
 package com.rideshare.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -23,12 +25,12 @@ public class Booking {
     
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "ride_id", nullable = false)
-    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"bookings"})
+    @JsonIgnoreProperties({"bookings"})
     private Ride ride;
     
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "passenger_id", nullable = false)
-    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"ridesPosted", "bookings", "password"})
+    @JsonIgnoreProperties({"ridesPosted", "bookings", "password"})
     private User passenger;
     
     @NotNull(message = "Number of seats is required")
@@ -52,7 +54,8 @@ public class Booking {
     @Column(updatable = false)
     private LocalDateTime bookingTime;
 
-    // Added to handle cascading delete of Payments when a Booking is deleted
+    // FIX: Added JsonIgnore to prevent infinite recursion in API response
     @OneToOne(mappedBy = "booking", cascade = CascadeType.ALL)
+    @JsonIgnore
     private Payment payment;
 }

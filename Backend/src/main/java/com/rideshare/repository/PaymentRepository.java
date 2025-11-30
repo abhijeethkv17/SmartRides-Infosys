@@ -1,7 +1,6 @@
 package com.rideshare.repository;
 
 import com.rideshare.model.Payment;
-import com.rideshare.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -17,11 +16,14 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     
     Optional<Payment> findByRazorpayPaymentId(String razorpayPaymentId);
     
-    List<Payment> findByPassengerOrderByCreatedAtDesc(User passenger);
+    // UPDATED: Use underscore to explicitly traverse to the ID property
+    List<Payment> findByPassenger_IdOrderByCreatedAtDesc(Long passengerId);
     
-    List<Payment> findByDriverOrderByCreatedAtDesc(User driver);
+    // UPDATED: Use underscore to explicitly traverse to the ID property
+    List<Payment> findByDriver_IdOrderByCreatedAtDesc(Long driverId);
     
     List<Payment> findByStatusOrderByCreatedAtDesc(String status);
     
-    List<Payment> findByDriverAndStatusOrderByCreatedAtDesc(User driver, String status);
+    // UPDATED: Use underscore to explicitly traverse to the ID property
+    List<Payment> findByDriver_IdAndStatusOrderByCreatedAtDesc(Long driverId, String status);
 }

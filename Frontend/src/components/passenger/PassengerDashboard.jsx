@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { bookingService } from "../../services/bookingService";
 
 const PassengerDashboard = () => {
@@ -7,6 +7,7 @@ const PassengerDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const location = useLocation();
+  const navigate = useNavigate(); // Hook for navigation
   const [successMessage, setSuccessMessage] = useState(
     location.state?.message || ""
   );
@@ -14,11 +15,9 @@ const PassengerDashboard = () => {
   useEffect(() => {
     fetchBookings();
 
-    // Clear message from state after 5 seconds
     if (successMessage) {
       const timer = setTimeout(() => {
         setSuccessMessage("");
-        // Clear history state to prevent message from showing on refresh
         window.history.replaceState({}, document.title);
       }, 5000);
       return () => clearTimeout(timer);
@@ -97,7 +96,6 @@ const PassengerDashboard = () => {
           </Link>
         </div>
 
-        {/* Success Message Banner */}
         {successMessage && (
           <div className="alert-success mb-6 fade-in">
             <div className="flex items-center gap-2">
@@ -162,7 +160,13 @@ const PassengerDashboard = () => {
               <p>Confirmed Rides</p>
             </div>
           </div>
-          <div className="stat-card">
+
+          {/* UPDATED: Made Total Spent card clickable to view Transaction History */}
+          <div
+            className="stat-card clickable-card"
+            onClick={() => navigate("/payments/history")}
+            title="View Transaction History"
+          >
             <div
               className="stat-icon-wrapper"
               style={{ color: "#2563EB", background: "#DBEAFE" }}
@@ -188,7 +192,7 @@ const PassengerDashboard = () => {
                   .reduce((sum, b) => sum + b.estimatedFare, 0)
                   .toFixed(0)}
               </h3>
-              <p>Total Spent</p>
+              <p>Total Spent &rarr;</p>
             </div>
           </div>
         </div>
@@ -305,6 +309,8 @@ const PassengerDashboard = () => {
         .bg-gray-50 { background-color: #F9FAFB; }
         .alert-success { background: #ECFDF5; color: #065F46; padding: 1rem; border-radius: var(--radius); border: 1px solid #A7F3D0; }
         .fade-in { animation: fadeIn 0.5s ease-in; }
+        .clickable-card { cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+        .clickable-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: var(--primary); }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
     </div>

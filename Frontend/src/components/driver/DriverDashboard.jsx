@@ -210,7 +210,13 @@ const DriverDashboard = () => {
               <p>Bookings</p>
             </div>
           </div>
-          <div className="stat-card">
+
+          {/* UPDATED: Made Earnings card clickable to view Transaction History */}
+          <div
+            className="stat-card clickable-card"
+            onClick={() => navigate("/payments/history")}
+            title="View Transaction History"
+          >
             <div
               className="stat-icon-wrapper"
               style={{ color: "var(--secondary)" }}
@@ -231,7 +237,7 @@ const DriverDashboard = () => {
                   .reduce((sum, b) => sum + b.estimatedFare, 0)
                   .toFixed(0)}
               </h3>
-              <p>Earnings</p>
+              <p>Earnings &rarr;</p>
             </div>
           </div>
         </div>
@@ -453,6 +459,8 @@ const DriverDashboard = () => {
         .btn-icon { background: none; border: none; cursor: pointer; padding: 0.25rem; transition: transform 0.2s; }
         .btn-icon:hover { transform: scale(1.1); }
         .text-danger { color: #EF4444; }
+        .clickable-card { cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+        .clickable-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: var(--primary); }
       `}</style>
     </div>
   );

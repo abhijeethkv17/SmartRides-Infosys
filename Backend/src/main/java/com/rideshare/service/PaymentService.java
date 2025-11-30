@@ -3,7 +3,6 @@ package com.rideshare.service;
 import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
-import com.razorpay.Refund;
 import com.razorpay.Utils;
 import com.rideshare.model.Booking;
 import com.rideshare.model.Payment;
@@ -18,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class PaymentService {
@@ -43,29 +41,23 @@ public class PaymentService {
     
     private static final Double PLATFORM_COMMISSION_RATE = 0.10; // 10%
     
-    /**
-     * Create a Razorpay order for booking payment
-     */
     @Transactional
     public Payment createPaymentOrder(Long bookingId) throws RazorpayException {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking not found"));
         
-        // Check if payment already exists
         if (paymentRepository.findByBookingId(bookingId).isPresent()) {
             throw new RuntimeException("Payment already exists for this booking");
         }
         
-        // Calculate commission and driver earnings
         Double amount = booking.getEstimatedFare();
         Double platformCommission = amount * PLATFORM_COMMISSION_RATE;
         Double driverEarnings = amount - platformCommission;
         
-        // Create Razorpay order
         RazorpayClient razorpayClient = new RazorpayClient(razorpayKeyId, razorpayKeySecret);
         
         JSONObject orderRequest = new JSONObject();
-        orderRequest.put("amount", (int)(amount * 100)); // Amount in paise
+        orderRequest.put("amount", (int)(amount * 100));
         orderRequest.put("currency", currency);
         orderRequest.put("receipt", "booking_" + bookingId);
         
@@ -77,7 +69,6 @@ public class PaymentService {
         
         Order order = razorpayClient.orders.create(orderRequest);
         
-        // Save payment record
         Payment payment = new Payment();
         payment.setBooking(booking);
         payment.setPassenger(booking.getPassenger());
@@ -92,9 +83,6 @@ public class PaymentService {
         return paymentRepository.save(payment);
     }
     
-    /**
-     * Verify and complete payment
-     */
     @Transactional
     public Payment verifyAndCompletePayment(String razorpayOrderId, 
                                             String razorpayPaymentId, 
@@ -103,7 +91,6 @@ public class PaymentService {
         Payment payment = paymentRepository.findByRazorpayOrderId(razorpayOrderId)
                 .orElseThrow(() -> new RuntimeException("Payment not found"));
         
-        // Verify signature
         JSONObject options = new JSONObject();
         options.put("razorpay_order_id", razorpayOrderId);
         options.put("razorpay_payment_id", razorpayPaymentId);
@@ -118,7 +105,6 @@ public class PaymentService {
             throw new RuntimeException("Payment signature verification failed");
         }
         
-        // Update payment status
         payment.setRazorpayPaymentId(razorpayPaymentId);
         payment.setRazorpaySignature(razorpaySignature);
         payment.setStatus("SUCCESS");
@@ -127,9 +113,6 @@ public class PaymentService {
         return paymentRepository.save(payment);
     }
     
-    /**
-     * Handle payment failure
-     */
     @Transactional
     public Payment handlePaymentFailure(String razorpayOrderId, String failureReason) {
         Payment payment = paymentRepository.findByRazorpayOrderId(razorpayOrderId)
@@ -141,41 +124,29 @@ public class PaymentService {
         return paymentRepository.save(payment);
     }
     
-    /**
-     * Get payment by booking ID
-     */
     public Payment getPaymentByBookingId(Long bookingId) {
         return paymentRepository.findByBookingId(bookingId)
                 .orElseThrow(() -> new RuntimeException("Payment not found for this booking"));
     }
     
-    /**
-     * Get passenger's payment history
-     */
     public List<Payment> getPassengerPayments() {
         User passenger = userService.getCurrentUser();
-        return paymentRepository.findByPassengerOrderByCreatedAtDesc(passenger);
+        // Updated to use _Id method
+        return paymentRepository.findByPassenger_IdOrderByCreatedAtDesc(passenger.getId());
     }
     
-    /**
-     * Get driver's earnings history
-     */
     public List<Payment> getDriverEarnings() {
         User driver = userService.getCurrentUser();
-        return paymentRepository.findByDriverAndStatusOrderByCreatedAtDesc(driver, "SUCCESS");
+        // Updated to use _Id method
+        return paymentRepository.findByDriver_IdAndStatusOrderByCreatedAtDesc(driver.getId(), "SUCCESS");
     }
     
-    /**
-     * Get all driver payments (including pending)
-     */
     public List<Payment> getAllDriverPayments() {
         User driver = userService.getCurrentUser();
-        return paymentRepository.findByDriverOrderByCreatedAtDesc(driver);
+        // Updated to use _Id method
+        return paymentRepository.findByDriver_IdOrderByCreatedAtDesc(driver.getId());
     }
     
-    /**
-     * Process refund
-     */
     @Transactional
     public Payment processRefund(Long paymentId) throws RazorpayException {
         Payment payment = paymentRepository.findById(paymentId)
@@ -185,17 +156,12 @@ public class PaymentService {
             throw new RuntimeException("Can only refund successful payments");
         }
         
-        // Process refund through Razorpay
         RazorpayClient razorpayClient = new RazorpayClient(razorpayKeyId, razorpayKeySecret);
         
         JSONObject refundRequest = new JSONObject();
-        refundRequest.put("amount", (int)(payment.getAmount() * 100)); // Full refund
+        refundRequest.put("amount", (int)(payment.getAmount() * 100));
         
-        // --- FIX APPLIED HERE ---
-        // Instead of fetching and calling .refund() on the object, we call refund on the client
-        // passing the Payment ID and the request options.
         razorpayClient.payments.refund(payment.getRazorpayPaymentId(), refundRequest);
-        // --- FIX END ---
         
         payment.setStatus("REFUNDED");
         payment.setRefundedAt(LocalDateTime.now());
@@ -203,21 +169,16 @@ public class PaymentService {
         return paymentRepository.save(payment);
     }
     
-    /**
-     * Get total earnings for driver
-     */
     public Double getTotalEarnings(User driver) {
+        // Updated to use _Id method
         List<Payment> successfulPayments = paymentRepository
-                .findByDriverAndStatusOrderByCreatedAtDesc(driver, "SUCCESS");
+                .findByDriver_IdAndStatusOrderByCreatedAtDesc(driver.getId(), "SUCCESS");
         
         return successfulPayments.stream()
                 .mapToDouble(Payment::getDriverEarnings)
                 .sum();
     }
     
-    /**
-     * Get Razorpay key for frontend
-     */
     public String getRazorpayKey() {
         return razorpayKeyId;
     }
