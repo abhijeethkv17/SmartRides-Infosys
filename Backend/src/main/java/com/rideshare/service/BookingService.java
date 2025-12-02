@@ -35,6 +35,9 @@ public class BookingService {
     
     @Autowired
     private FareCalculationService fareCalculationService;
+
+    @Autowired
+    private NotificationService notificationService;
     
     @Transactional
     public BookingResponse createBooking(BookingRequest request) {
@@ -55,34 +58,28 @@ public class BookingService {
             throw new RuntimeException("Driver cannot book their own ride");
         }
         
-        // Calculate actual distance using Google Maps API
+        // Calculate actual distance using Google Maps API or fallback
         Double actualDistance;
         try {
-            // If pickup and drop locations are provided, calculate distance between them
-            // Otherwise, use the ride's source and destination
             String origin = request.getPickupLocation() != null && !request.getPickupLocation().isEmpty() 
                     ? request.getPickupLocation() : ride.getSource();
             String destination = request.getDropLocation() != null && !request.getDropLocation().isEmpty() 
                     ? request.getDropLocation() : ride.getDestination();
             
             actualDistance = distanceCalculationService.calculateDistance(origin, destination);
-            
-            System.out.println("Calculated distance from " + origin + " to " + destination + ": " + actualDistance + " km");
+            System.out.println("Calculated distance: " + actualDistance + " km");
             
         } catch (Exception e) {
-            // If distance calculation fails, fall back to user-provided distance
-            System.err.println("Failed to calculate distance, using provided distance: " + e.getMessage());
+            System.err.println("Distance calculation failed, using provided distance: " + e.getMessage());
             actualDistance = request.getDistanceKm();
         }
         
-        // Calculate fare using the fare calculation service
+        // Calculate fare
         Double estimatedFare = fareCalculationService.calculateFare(
                 actualDistance, 
                 ride.getPricePerKm(), 
                 request.getSeatsBooked()
         );
-        
-        System.out.println("Calculated fare: ₹" + estimatedFare + " for " + actualDistance + "km @ ₹" + ride.getPricePerKm() + "/km");
         
         Booking booking = new Booking();
         booking.setRide(ride);
@@ -99,18 +96,25 @@ public class BookingService {
         
         Booking savedBooking = bookingRepository.save(booking);
         
-        // Send confirmation emails asynchronously
+        // --- PERSISTENT REAL-TIME NOTIFICATION ---
+        // Notify the Driver
         try {
-            // Send confirmation email to passenger
+            notificationService.sendNotification(
+                ride.getDriver(),
+                "BOOKING_NEW",
+                "New booking! " + passenger.getName() + " booked " + request.getSeatsBooked() + " seat(s).",
+                savedBooking.getId()
+            );
+        } catch (Exception e) {
+            System.err.println("Failed to send notification: " + e.getMessage());
+        }
+
+        // Send emails (async in production)
+        try {
             emailService.sendBookingConfirmationToPassenger(savedBooking);
-            
-            // Send notification email to driver
             emailService.sendBookingNotificationToDriver(savedBooking);
-            
-            System.out.println("Booking confirmation emails sent successfully");
         } catch (Exception e) {
             System.err.println("Failed to send booking emails: " + e.getMessage());
-            // Don't fail the booking if email sending fails
         }
         
         return BookingResponse.fromBooking(savedBooking);

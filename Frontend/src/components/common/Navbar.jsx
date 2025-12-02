@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { ROLE } from "../../utils/constants";
+import NotificationBell from "./NotificationBell"; // Import the new component
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -17,17 +18,6 @@ const Navbar = () => {
 
   const isActive = (path) => location.pathname === path;
   const linkClass = (path) => (isActive(path) ? "nav-link active" : "nav-link");
-
-  // SVG Icons
-  const CarIcon = () => (
-    <svg className="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
-      />
-    </svg>
-  );
 
   return (
     <nav className="navbar">
@@ -94,6 +84,9 @@ const Navbar = () => {
               </div>
 
               <div className="user-menu">
+                {/* Added Notification Bell Here */}
+                <NotificationBell />
+
                 <div className="user-info">
                   <span className="user-name">{user.name}</span>
                   <span className="user-badge">
@@ -148,7 +141,6 @@ const Navbar = () => {
         </button>
       </div>
 
-      {/* Internal CSS for Navbar specific layout */}
       <style>{`
         .navbar {
           background-color: white;

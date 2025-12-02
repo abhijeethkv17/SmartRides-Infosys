@@ -2,9 +2,11 @@ package com.rideshare.service;
 
 import com.rideshare.dto.RideRequest;
 import com.rideshare.dto.RideResponse;
+import com.rideshare.model.Booking;
 import com.rideshare.model.Ride;
 import com.rideshare.model.Role;
 import com.rideshare.model.User;
+import com.rideshare.repository.BookingRepository;
 import com.rideshare.repository.RideRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,9 +20,15 @@ public class RideService {
     
     @Autowired
     private RideRepository rideRepository;
+
+    @Autowired
+    private BookingRepository bookingRepository;
     
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private NotificationService notificationService;
     
     public RideResponse postRide(RideRequest request) {
         User driver = userService.getCurrentUser();
@@ -75,9 +83,6 @@ public class RideService {
         rideRepository.delete(ride);
     }
     
-    /**
-     * Mark a ride as COMPLETED by the driver
-     */
     public RideResponse completeRide(Long id) {
         User currentUser = userService.getCurrentUser();
         Ride ride = rideRepository.findById(id)
@@ -94,14 +99,9 @@ public class RideService {
         ride.setStatus("COMPLETED");
         Ride completedRide = rideRepository.save(ride);
         
-        System.out.println("Driver manually completed ride #" + id);
-        
         return RideResponse.fromRide(completedRide);
     }
     
-    /**
-     * Cancel a ride by the driver
-     */
     public RideResponse cancelRide(Long id) {
         User currentUser = userService.getCurrentUser();
         Ride ride = rideRepository.findById(id)
@@ -118,9 +118,27 @@ public class RideService {
         ride.setStatus("CANCELLED");
         Ride cancelledRide = rideRepository.save(ride);
         
-        System.out.println("Driver cancelled ride #" + id);
+        // --- PERSISTENT REAL-TIME NOTIFICATION ---
+        // 1. Find all passengers who booked this ride
+        List<Booking> bookings = bookingRepository.findByRide(ride);
         
-        // TODO: Send notification emails to all passengers who booked this ride
+        for (Booking booking : bookings) {
+            // 2. Send persistent notification to passenger
+            try {
+                notificationService.sendNotification(
+                    booking.getPassenger(),
+                    "RIDE_CANCELLED",
+                    "Alert: Your ride from " + ride.getSource() + " to " + ride.getDestination() + " has been cancelled by the driver.",
+                    ride.getId()
+                );
+            } catch (Exception e) {
+                System.err.println("Failed to notify passenger: " + e.getMessage());
+            }
+            
+            // 3. Update booking status
+            booking.setStatus("CANCELLED");
+            bookingRepository.save(booking);
+        }
         
         return RideResponse.fromRide(cancelledRide);
     }
