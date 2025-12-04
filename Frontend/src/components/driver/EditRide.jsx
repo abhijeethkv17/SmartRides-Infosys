@@ -60,9 +60,10 @@ const EditRide = () => {
     setSubmitting(true);
 
     try {
+      // FIX: Send local time string directly instead of converting to UTC
       const payload = {
         ...formData,
-        departureDateTime: new Date(formData.departureDateTime).toISOString(),
+        departureDateTime: formData.departureDateTime + ":00",
         availableSeats: parseInt(formData.availableSeats),
         pricePerKm: parseFloat(formData.pricePerKm),
       };

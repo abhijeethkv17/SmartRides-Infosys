@@ -23,14 +23,17 @@ public interface RideRepository extends JpaRepository<Ride, Long> {
     // Find rides between two dates
     List<Ride> findByStatusAndDepartureDateTimeBetween(String status, LocalDateTime start, LocalDateTime end);
     
+    // Updated query to search within a time range (Start Date -> End Date)
     @Query("SELECT r FROM Ride r WHERE " +
            "LOWER(r.source) LIKE LOWER(CONCAT('%', :source, '%')) AND " +
            "LOWER(r.destination) LIKE LOWER(CONCAT('%', :destination, '%')) AND " +
-           "r.departureDateTime >= :date AND " +
+           "r.departureDateTime >= :startDate AND " +
+           "r.departureDateTime < :endDate AND " +
            "r.availableSeats > 0 AND " +
            "r.status = 'ACTIVE' " +
            "ORDER BY r.departureDateTime ASC")
     List<Ride> searchRides(@Param("source") String source, 
                           @Param("destination") String destination, 
-                          @Param("date") LocalDateTime date);
+                          @Param("startDate") LocalDateTime startDate,
+                          @Param("endDate") LocalDateTime endDate);
 }

@@ -11,7 +11,9 @@ import com.rideshare.repository.RideRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,6 +31,9 @@ public class RideService {
 
     @Autowired
     private NotificationService notificationService;
+    
+    @Autowired
+    private RouteMatchingService routeMatchingService;
     
     public RideResponse postRide(RideRequest request) {
         User driver = userService.getCurrentUser();
@@ -118,12 +123,9 @@ public class RideService {
         ride.setStatus("CANCELLED");
         Ride cancelledRide = rideRepository.save(ride);
         
-        // --- PERSISTENT REAL-TIME NOTIFICATION ---
-        // 1. Find all passengers who booked this ride
         List<Booking> bookings = bookingRepository.findByRide(ride);
         
         for (Booking booking : bookings) {
-            // 2. Send persistent notification to passenger
             try {
                 notificationService.sendNotification(
                     booking.getPassenger(),
@@ -135,7 +137,6 @@ public class RideService {
                 System.err.println("Failed to notify passenger: " + e.getMessage());
             }
             
-            // 3. Update booking status
             booking.setStatus("CANCELLED");
             bookingRepository.save(booking);
         }
@@ -143,12 +144,48 @@ public class RideService {
         return RideResponse.fromRide(cancelledRide);
     }
     
-    public List<RideResponse> searchRides(String source, String destination, LocalDateTime date) {
-        if (date == null) {
-            date = LocalDateTime.now();
+    /**
+     * UPDATED: Search rides by Date (Whole Day) with Route Matching
+     */
+    public List<RideResponse> searchRides(String source, String destination, LocalDate date) {
+        LocalDateTime startDateTime;
+        LocalDateTime endDateTime;
+
+        if (date != null) {
+            // Search for the whole day (00:00:00 to 23:59:59 effectively)
+            startDateTime = date.atStartOfDay();
+            endDateTime = date.plusDays(1).atStartOfDay();
+        } else {
+            // If no date provided, default to searching from now onwards
+            startDateTime = LocalDateTime.now();
+            endDateTime = startDateTime.plusYears(100); // Far future
         }
-        List<Ride> rides = rideRepository.searchRides(source, destination, date);
-        return rides.stream().map(RideResponse::fromRide).collect(Collectors.toList());
+        
+        // Get all available rides within the date range
+        List<Ride> allRides = rideRepository.searchRides(source, destination, startDateTime, endDateTime);
+        
+        // Apply intelligent route matching
+        List<RouteMatchingService.RideMatch> matches = 
+                routeMatchingService.matchRides(allRides, source, destination);
+        
+        // Convert to RideResponse with match information
+        List<RideResponse> responses = new ArrayList<>();
+        
+        for (RouteMatchingService.RideMatch match : matches) {
+            RideResponse response = RideResponse.fromRide(match.getRide());
+            
+            // Add match metadata
+            response.setMatchType(match.getMatchType().name());
+            response.setMatchScore(match.getMatchScore());
+            response.setMatchDescription(match.getMatchDescription());
+            response.setExtraDistanceKm(match.getExtraDistanceKm());
+            response.setSuggestedPickup(match.getSuggestedPickup());
+            response.setSuggestedDrop(match.getSuggestedDrop());
+            
+            responses.add(response);
+        }
+        
+        return responses;
     }
     
     public List<RideResponse> getDriverRides() {

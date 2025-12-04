@@ -39,13 +39,11 @@ const SearchRides = () => {
     setError("");
     setLoading(true);
     try {
-      const dateTime = searchParams.date
-        ? new Date(searchParams.date).toISOString()
-        : null;
+      // CHANGED: Pass the date string directly (YYYY-MM-DD) for full-day search
       const response = await rideService.searchRides(
         searchParams.source,
         searchParams.destination,
-        dateTime
+        searchParams.date
       );
       if (response.success) {
         setRides(response.data);
@@ -107,7 +105,6 @@ const SearchRides = () => {
     setProcessingPayment(true);
 
     try {
-      // Step 1: Create booking
       const payload = {
         rideId: selectedRide.id,
         seatsBooked: parseInt(bookingData.seatsBooked),
@@ -125,7 +122,6 @@ const SearchRides = () => {
 
       const bookingId = bookingResponse.data.id;
 
-      // Step 2: Create payment order
       const paymentOrderResponse = await paymentService.createPaymentOrder(
         bookingId
       );
@@ -136,10 +132,9 @@ const SearchRides = () => {
 
       const { orderId, amount, currency, keyId } = paymentOrderResponse.data;
 
-      // Step 3: Initialize Razorpay
       const razorpayOptions = {
         key: keyId,
-        amount: amount * 100, // Convert to paise
+        amount: amount * 100,
         currency: currency,
         name: "SmartRides",
         description: `Booking #${bookingId}`,
@@ -158,7 +153,6 @@ const SearchRides = () => {
         razorpayOptions
       );
 
-      // Step 4: Verify payment
       const verificationData = {
         razorpayOrderId: paymentResponse.razorpay_order_id,
         razorpayPaymentId: paymentResponse.razorpay_payment_id,
@@ -170,7 +164,6 @@ const SearchRides = () => {
       );
 
       if (verificationResponse.success) {
-        // Close modals and navigate
         setProcessingPayment(false);
         setSelectedRide(null);
         navigate("/passenger/dashboard", {
@@ -185,7 +178,6 @@ const SearchRides = () => {
       console.error("Booking/Payment error:", err);
       setProcessingPayment(false);
 
-      // If payment was cancelled, give a specific message
       if (err.message === "Payment cancelled by user") {
         setError("Payment was cancelled. You can retry booking.");
       } else {
@@ -197,6 +189,15 @@ const SearchRides = () => {
   };
 
   const formatDateTime = (dateTime) => new Date(dateTime).toLocaleString();
+
+  const getMatchBadge = (matchType) => {
+    const badges = {
+      EXACT: { label: "Perfect Match", color: "#10B981", icon: "✓" },
+      ALONG_ROUTE: { label: "On Route", color: "#3B82F6", icon: "⟶" },
+      PARTIAL_DETOUR: { label: "Near Route", color: "#F59E0B", icon: "↗" },
+    };
+    return badges[matchType] || badges.EXACT;
+  };
 
   return (
     <div className="page-container">
@@ -231,8 +232,9 @@ const SearchRides = () => {
                 required
                 className="form-input"
               />
+              {/* CHANGED: Input type to 'date' for day-based search */}
               <input
-                type="datetime-local"
+                type="date"
                 name="date"
                 value={searchParams.date}
                 onChange={handleSearchChange}
@@ -250,57 +252,124 @@ const SearchRides = () => {
         </div>
 
         {rides.length > 0 && (
-          <div className="results-grid">
-            {rides.map((ride) => (
-              <div key={ride.id} className="card">
-                <div className="card-body">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <div className="route-text">
-                        {ride.source} <span className="arrow">→</span>{" "}
-                        {ride.destination}
-                      </div>
-                      <div className="text-sm text-gray-500 mt-1">
-                        {formatDateTime(ride.departureDateTime)}
-                      </div>
-                    </div>
-                    <div className="price-tag">₹{ride.pricePerKm}/km</div>
-                  </div>
+          <div>
+            <div className="results-header">
+              <h2>Available Rides ({rides.length})</h2>
+              <p className="text-sm text-gray-500">
+                Sorted by best match • Exact matches first
+              </p>
+            </div>
 
-                  <div className="driver-mini-profile mb-4">
-                    <div className="avatar-circle">
-                      {ride.driver.name.charAt(0)}
-                    </div>
-                    <div>
-                      <div className="font-semibold text-sm">
-                        {ride.driver.name}
+            <div className="results-grid">
+              {rides.map((ride) => {
+                const matchBadge = getMatchBadge(ride.matchType);
+                return (
+                  <div key={ride.id} className="card ride-card">
+                    <div className="card-body">
+                      {/* Match Badge */}
+                      {ride.matchType && (
+                        <div
+                          className="match-badge"
+                          style={{ backgroundColor: `${matchBadge.color}15` }}
+                        >
+                          <span
+                            className="match-icon"
+                            style={{ color: matchBadge.color }}
+                          >
+                            {matchBadge.icon}
+                          </span>
+                          <span style={{ color: matchBadge.color }}>
+                            {matchBadge.label}
+                          </span>
+                          {ride.matchScore && (
+                            <span
+                              className="match-score"
+                              style={{ color: matchBadge.color }}
+                            >
+                              {Math.round(ride.matchScore)}%
+                            </span>
+                          )}
+                        </div>
+                      )}
+
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <div className="route-text">
+                            {ride.source} <span className="arrow">→</span>{" "}
+                            {ride.destination}
+                          </div>
+                          <div className="text-sm text-gray-500 mt-1">
+                            {formatDateTime(ride.departureDateTime)}
+                          </div>
+                        </div>
+                        <div className="price-tag">₹{ride.pricePerKm}/km</div>
                       </div>
-                      <div className="text-xs text-gray-500">
-                        {ride.driver.carModel} • {ride.availableSeats} seats
-                        left
+
+                      {/* Match Description */}
+                      {ride.matchDescription && (
+                        <div className="match-description">
+                          <svg
+                            width="16"
+                            height="16"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                          </svg>
+                          <span>{ride.matchDescription}</span>
+                        </div>
+                      )}
+
+                      {ride.extraDistanceKm > 0 && (
+                        <div className="extra-distance">
+                          +{ride.extraDistanceKm.toFixed(1)} km detour for
+                          driver
+                        </div>
+                      )}
+
+                      <div className="driver-mini-profile mb-4">
+                        <div className="avatar-circle">
+                          {ride.driver.name.charAt(0)}
+                        </div>
+                        <div>
+                          <div className="font-semibold text-sm">
+                            {ride.driver.name}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {ride.driver.carModel} • {ride.availableSeats} seats
+                            left
+                          </div>
+                        </div>
                       </div>
+
+                      <button
+                        onClick={() => {
+                          setSelectedRide(ride);
+                          setBookingData({
+                            seatsBooked: 1,
+                            pickupLocation: ride.suggestedPickup || ride.source,
+                            dropLocation:
+                              ride.suggestedDrop || ride.destination,
+                            distanceKm: "",
+                          });
+                          setFareEstimate(null);
+                        }}
+                        className="btn btn-primary"
+                        style={{ width: "100%" }}
+                      >
+                        Book Now
+                      </button>
                     </div>
                   </div>
-
-                  <button
-                    onClick={() => {
-                      setSelectedRide(ride);
-                      setBookingData({
-                        seatsBooked: 1,
-                        pickupLocation: ride.source,
-                        dropLocation: ride.destination,
-                        distanceKm: "",
-                      });
-                      setFareEstimate(null);
-                    }}
-                    className="btn btn-primary"
-                    style={{ width: "100%" }}
-                  >
-                    Book Now
-                  </button>
-                </div>
-              </div>
-            ))}
+                );
+              })}
+            </div>
           </div>
         )}
 
@@ -479,7 +548,22 @@ const SearchRides = () => {
       </div>
       <style>{`
         .search-bar-grid { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 1rem; align-items: end; }
-        .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
+        .results-header { margin-bottom: 1.5rem; }
+        .results-header h2 { font-size: 1.5rem; font-weight: 700; color: var(--dark); margin-bottom: 0.25rem; }
+        .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.5rem; }
+        
+        .ride-card { position: relative; transition: all 0.3s; }
+        .ride-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+        
+        .match-badge { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; margin-bottom: 1rem; }
+        .match-icon { font-size: 1rem; }
+        .match-score { margin-left: auto; font-size: 0.75rem; opacity: 0.8; }
+        
+        .match-description { display: flex; align-items: start; gap: 0.5rem; padding: 0.75rem; background: #F3F4F6; border-radius: 8px; font-size: 0.85rem; color: #4B5563; margin-bottom: 0.75rem; line-height: 1.4; }
+        .match-description svg { flex-shrink: 0; margin-top: 2px; color: #9CA3AF; }
+        
+        .extra-distance { font-size: 0.75rem; color: #F59E0B; background: #FEF3C7; padding: 0.5rem; border-radius: 6px; margin-bottom: 0.75rem; text-align: center; font-weight: 600; }
+        
         .route-text { font-weight: 700; font-size: 1.1rem; }
         .arrow { color: var(--text-light); margin: 0 0.5rem; }
         .price-tag { background: #EFF6FF; color: var(--primary); font-weight: 700; padding: 0.25rem 0.75rem; border-radius: 6px; }
@@ -507,7 +591,7 @@ const SearchRides = () => {
         .alert-error { background: #FEF2F2; color: #991B1B; padding: 0.75rem; border-radius: 0.5rem; font-size: 0.875rem; border: 1px solid #FECACA; }
         
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @media (max-width: 768px) { .search-bar-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) { .search-bar-grid { grid-template-columns: 1fr; } .results-grid { grid-template-columns: 1fr; } }
       `}</style>
     </div>
   );

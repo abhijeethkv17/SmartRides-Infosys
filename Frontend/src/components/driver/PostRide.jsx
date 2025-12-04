@@ -24,9 +24,11 @@ const PostRide = () => {
     setLoading(true);
 
     try {
+      // FIX: Use the local time string directly instead of converting to UTC with toISOString()
+      // We append ":00" because backend LocalDateTime typically expects seconds
       const payload = {
         ...formData,
-        departureDateTime: new Date(formData.departureDateTime).toISOString(),
+        departureDateTime: formData.departureDateTime + ":00",
         availableSeats: parseInt(formData.availableSeats),
         pricePerKm: parseFloat(formData.pricePerKm),
       };
@@ -114,7 +116,6 @@ const PostRide = () => {
             <div className="form-group">
               <label className="form-label">Available Seats</label>
               <div className="input-with-icon">
-                {/* FIXED: Added explicit width, height and style color */}
                 <svg
                   className="input-icon"
                   width="20"
@@ -190,7 +191,6 @@ const PostRide = () => {
         .gap-4 { gap: 1rem; }
         .input-with-icon { position: relative; }
         
-        /* Updated .input-icon to handle both text spans and SVGs correctly */
         .input-icon { 
           position: absolute; 
           left: 12px; 

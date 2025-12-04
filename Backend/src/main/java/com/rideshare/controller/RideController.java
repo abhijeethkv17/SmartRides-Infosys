@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -95,7 +96,8 @@ public class RideController {
     public ResponseEntity<?> searchRides(
             @RequestParam String source,
             @RequestParam String destination,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime date) {
+            // Changed from ISO.DATE_TIME to ISO.DATE to accept YYYY-MM-DD
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         try {
             List<RideResponse> rides = rideService.searchRides(source, destination, date);
             return ResponseEntity.ok(new ApiResponse(true, "Rides fetched successfully", rides));
