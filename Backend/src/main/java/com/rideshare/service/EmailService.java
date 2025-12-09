@@ -1,6 +1,7 @@
 package com.rideshare.service;
 
 import com.rideshare.model.Booking;
+import com.rideshare.model.Ride;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
@@ -45,7 +46,6 @@ public class EmailService {
             System.out.println("Booking confirmation email sent to passenger: " + booking.getPassenger().getEmail());
         } catch (Exception e) {
             System.err.println("Failed to send booking confirmation to passenger: " + e.getMessage());
-            // Don't throw exception to avoid blocking the booking process
         }
     }
     
@@ -61,9 +61,64 @@ public class EmailService {
             System.out.println("Booking notification email sent to driver: " + booking.getRide().getDriver().getEmail());
         } catch (Exception e) {
             System.err.println("Failed to send booking notification to driver: " + e.getMessage());
-            // Don't throw exception to avoid blocking the booking process
         }
     }
+    
+    /**
+     * NEW: Send ride reminder to driver
+     */
+    public void sendRideReminderToDriver(Ride ride) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(ride.getDriver().getEmail());
+            message.setSubject("⏰ Ride Reminder - Your Journey Starts Soon!");
+            message.setText(buildDriverReminderEmailBody(ride));
+            
+            mailSender.send(message);
+            System.out.println("Ride reminder email sent to driver: " + ride.getDriver().getEmail());
+        } catch (Exception e) {
+            System.err.println("Failed to send ride reminder to driver: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * NEW: Send ride reminder to passenger
+     */
+    public void sendRideReminderToPassenger(Booking booking) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(booking.getPassenger().getEmail());
+            message.setSubject("⏰ Ride Reminder - Get Ready for Your Journey!");
+            message.setText(buildPassengerReminderEmailBody(booking));
+            
+            mailSender.send(message);
+            System.out.println("Ride reminder email sent to passenger: " + booking.getPassenger().getEmail());
+        } catch (Exception e) {
+            System.err.println("Failed to send ride reminder to passenger: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * NEW: Send ride cancellation email to passenger
+     */
+    public void sendRideCancellationToPassenger(Booking booking) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(booking.getPassenger().getEmail());
+            message.setSubject("Ride Cancelled - Smart Ride Sharing");
+            message.setText(buildCancellationEmailBody(booking));
+            
+            mailSender.send(message);
+            System.out.println("Cancellation email sent to passenger: " + booking.getPassenger().getEmail());
+        } catch (Exception e) {
+            System.err.println("Failed to send cancellation email: " + e.getMessage());
+        }
+    }
+    
+    // Email body builders
     
     private String buildOTPEmailBody(String userName, String otp) {
         return String.format(
@@ -90,64 +145,41 @@ public class EmailService {
             "Booking ID: #%d\n" +
             "Status: %s\n\n" +
             "JOURNEY DETAILS:\n" +
-            "----------------\n" +
             "From: %s\n" +
             "To: %s\n" +
             "Departure: %s\n\n" +
             "YOUR PICKUP & DROP:\n" +
-            "-------------------\n" +
             "Pickup Point: %s\n" +
             "Drop Point: %s\n\n" +
             "BOOKING DETAILS:\n" +
-            "----------------\n" +
             "Seats Booked: %d\n" +
             "Total Fare: ₹%.2f\n\n" +
             "DRIVER INFORMATION:\n" +
-            "-------------------\n" +
             "Driver Name: %s\n" +
             "Contact: %s\n" +
-            "Vehicle: %s (%s)\n" +
-            "Vehicle Capacity: %d seats\n\n" +
+            "Vehicle: %s (%s)\n\n" +
             "IMPORTANT NOTES:\n" +
-            "----------------\n" +
             "• Please arrive at the pickup point 10 minutes before departure time\n" +
             "• Driver's contact number: %s\n" +
-            "• Keep your booking ID handy for reference\n" +
-            "• Payment: ₹%.2f\n\n" +
-            "Need to make changes? Contact the driver directly or visit our website.\n\n" +
+            "• Keep your booking ID handy for reference\n\n" +
             "Have a safe and pleasant journey!\n\n" +
             "Best regards,\n" +
-            "Smart Ride Sharing Team\n" +
-            "support@smartridesharing.com",
-            
-            // Passenger details
+            "Smart Ride Sharing Team",
             booking.getPassenger().getName(),
             booking.getId(),
             booking.getStatus(),
-            
-            // Journey details
             booking.getRide().getSource(),
             booking.getRide().getDestination(),
             departureTime,
-            
-            // Pickup and drop
             booking.getPickupLocation(),
             booking.getDropLocation(),
-            
-            // Booking details
             booking.getSeatsBooked(),
             booking.getEstimatedFare(),
-            
-            // Driver information
             booking.getRide().getDriver().getName(),
             booking.getRide().getDriver().getPhone(),
             booking.getRide().getDriver().getCarModel(),
             booking.getRide().getDriver().getLicensePlate(),
-            booking.getRide().getDriver().getVehicleCapacity(),
-            
-            // Important notes
-            booking.getRide().getDriver().getPhone(),
-            booking.getEstimatedFare()
+            booking.getRide().getDriver().getPhone()
         );
     }
     
@@ -161,76 +193,142 @@ public class EmailService {
             "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
             "NEW BOOKING NOTIFICATION\n" +
             "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n" +
-            "Booking ID: #%d\n" +
-            "Booking Status: %s\n\n" +
+            "Booking ID: #%d\n\n" +
             "YOUR RIDE DETAILS:\n" +
-            "------------------\n" +
             "Route: %s → %s\n" +
             "Departure: %s\n" +
             "Available Seats: %d / %d\n\n" +
             "PASSENGER INFORMATION:\n" +
-            "----------------------\n" +
             "Name: %s\n" +
             "Contact: %s\n" +
             "Email: %s\n\n" +
             "BOOKING DETAILS:\n" +
-            "----------------\n" +
             "Pickup Point: %s\n" +
             "Drop Point: %s\n" +
             "Seats Booked: %d\n" +
             "Fare Amount: ₹%.2f\n\n" +
-            "RIDE SUMMARY:\n" +
-            "-------------\n" +
-            "Total Seats in Vehicle: %d\n" +
-            "Remaining Available Seats: %d\n" +
-            "Total Bookings for this Ride: Check Dashboard\n\n" +
             "ACTION REQUIRED:\n" +
-            "----------------\n" +
             "• Contact the passenger before departure: %s\n" +
             "• Confirm pickup location and time\n" +
-            "• Ensure vehicle is clean and ready\n" +
-            "• Arrive at pickup point on time\n\n" +
-            "PAYMENT INFORMATION:\n" +
-            "--------------------\n" +
-            "Payment Amount: ₹%.2f\n" +
-            "Payment will be transferred after ride completion.\n\n" +
-            "You can view all your bookings and ride details on your dashboard.\n\n" +
-            "Thank you for being a valued driver on Smart Ride Sharing!\n\n" +
+            "• Ensure vehicle is clean and ready\n\n" +
+            "Thank you for being a valued driver!\n\n" +
             "Best regards,\n" +
-            "Smart Ride Sharing Team\n" +
-            "support@smartridesharing.com",
-            
-            // Driver details
+            "Smart Ride Sharing Team",
             booking.getRide().getDriver().getName(),
             booking.getId(),
-            booking.getStatus(),
-            
-            // Ride details
             booking.getRide().getSource(),
             booking.getRide().getDestination(),
             departureTime,
             booking.getRide().getAvailableSeats(),
             booking.getRide().getTotalSeats(),
-            
-            // Passenger information
             booking.getPassenger().getName(),
             booking.getPassenger().getPhone(),
             booking.getPassenger().getEmail(),
-            
-            // Booking details
             booking.getPickupLocation(),
             booking.getDropLocation(),
             booking.getSeatsBooked(),
             booking.getEstimatedFare(),
-            
-            // Ride summary
-            booking.getRide().getTotalSeats(),
-            booking.getRide().getAvailableSeats(),
-            
-            // Action required
-            booking.getPassenger().getPhone(),
-            
-            // Payment
+            booking.getPassenger().getPhone()
+        );
+    }
+    
+    private String buildDriverReminderEmailBody(Ride ride) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy, hh:mm a");
+        String departureTime = ride.getDepartureDateTime().format(formatter);
+        
+        return String.format(
+            "Dear %s,\n\n" +
+            "⏰ RIDE REMINDER\n\n" +
+            "Your ride starts in 2 hours!\n\n" +
+            "RIDE DETAILS:\n" +
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
+            "Route: %s → %s\n" +
+            "Departure: %s\n" +
+            "Passengers Booked: %d / %d seats\n\n" +
+            "PRE-RIDE CHECKLIST:\n" +
+            "✓ Vehicle is clean and fueled\n" +
+            "✓ All passengers have been contacted\n" +
+            "✓ Route is planned\n" +
+            "✓ You have everyone's contact details\n\n" +
+            "Drive safely and have a great journey!\n\n" +
+            "Best regards,\n" +
+            "Smart Ride Sharing Team",
+            ride.getDriver().getName(),
+            ride.getSource(),
+            ride.getDestination(),
+            departureTime,
+            ride.getTotalSeats() - ride.getAvailableSeats(),
+            ride.getTotalSeats()
+        );
+    }
+    
+    private String buildPassengerReminderEmailBody(Booking booking) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy, hh:mm a");
+        String departureTime = booking.getRide().getDepartureDateTime().format(formatter);
+        
+        return String.format(
+            "Dear %s,\n\n" +
+            "⏰ RIDE REMINDER\n\n" +
+            "Your ride starts in 2 hours! Please be ready.\n\n" +
+            "RIDE DETAILS:\n" +
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
+            "Route: %s → %s\n" +
+            "Departure: %s\n" +
+            "Pickup Location: %s\n" +
+            "Drop Location: %s\n\n" +
+            "DRIVER INFORMATION:\n" +
+            "Name: %s\n" +
+            "Contact: %s\n" +
+            "Vehicle: %s (%s)\n\n" +
+            "IMPORTANT:\n" +
+            "• Arrive at pickup point 10 minutes early\n" +
+            "• Keep your phone accessible\n" +
+            "• Have your booking ID ready: #%d\n\n" +
+            "Have a safe journey!\n\n" +
+            "Best regards,\n" +
+            "Smart Ride Sharing Team",
+            booking.getPassenger().getName(),
+            booking.getRide().getSource(),
+            booking.getRide().getDestination(),
+            departureTime,
+            booking.getPickupLocation(),
+            booking.getDropLocation(),
+            booking.getRide().getDriver().getName(),
+            booking.getRide().getDriver().getPhone(),
+            booking.getRide().getDriver().getCarModel(),
+            booking.getRide().getDriver().getLicensePlate(),
+            booking.getId()
+        );
+    }
+    
+    private String buildCancellationEmailBody(Booking booking) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy, hh:mm a");
+        String departureTime = booking.getRide().getDepartureDateTime().format(formatter);
+        
+        return String.format(
+            "Dear %s,\n\n" +
+            "We regret to inform you that your booked ride has been cancelled by the driver.\n\n" +
+            "CANCELLED RIDE DETAILS:\n" +
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
+            "Booking ID: #%d\n" +
+            "Route: %s → %s\n" +
+            "Scheduled Departure: %s\n" +
+            "Seats Booked: %d\n" +
+            "Amount Paid: ₹%.2f\n\n" +
+            "REFUND INFORMATION:\n" +
+            "Your payment will be refunded to your original payment method within 5-7 business days.\n\n" +
+            "NEXT STEPS:\n" +
+            "• Search for alternative rides on our platform\n" +
+            "• Contact support if you need assistance: support@smartrides.com\n\n" +
+            "We apologize for the inconvenience.\n\n" +
+            "Best regards,\n" +
+            "Smart Ride Sharing Team",
+            booking.getPassenger().getName(),
+            booking.getId(),
+            booking.getRide().getSource(),
+            booking.getRide().getDestination(),
+            departureTime,
+            booking.getSeatsBooked(),
             booking.getEstimatedFare()
         );
     }
