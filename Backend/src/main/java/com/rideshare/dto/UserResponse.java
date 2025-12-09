@@ -16,6 +16,7 @@ public class UserResponse {
     private String carModel;
     private String licensePlate;
     private Integer vehicleCapacity;
+    private Double averageRating; // Added field
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     
@@ -31,6 +32,8 @@ public class UserResponse {
         response.setVehicleCapacity(user.getVehicleCapacity());
         response.setCreatedAt(user.getCreatedAt());
         response.setUpdatedAt(user.getUpdatedAt());
+        // Note: averageRating is not set here as it requires a repository call.
+        // It must be set by the Service layer.
         return response;
     }
 }

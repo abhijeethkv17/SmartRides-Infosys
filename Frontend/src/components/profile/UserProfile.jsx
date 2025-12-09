@@ -51,17 +51,29 @@ const UserProfile = () => {
             </div>
             <div className="profile-title">
               <h1>{profile.name}</h1>
-              <span
-                className={`role-badge ${
-                  profile.role === ROLE.DRIVER
-                    ? "role-driver"
-                    : "role-passenger"
-                }`}
-              >
-                {profile.role === ROLE.DRIVER
-                  ? "Driver Account"
-                  : "Passenger Account"}
-              </span>
+              <div className="flex items-center gap-2 justify-center sm:justify-start">
+                <span
+                  className={`role-badge ${
+                    profile.role === ROLE.DRIVER
+                      ? "role-driver"
+                      : "role-passenger"
+                  }`}
+                >
+                  {profile.role === ROLE.DRIVER
+                    ? "Driver Account"
+                    : "Passenger Account"}
+                </span>
+
+                {/* Rating Badge */}
+                {profile.role === ROLE.DRIVER && (
+                  <span className="rating-badge">
+                    <span className="star">★</span>
+                    {profile.averageRating
+                      ? profile.averageRating.toFixed(1)
+                      : "New"}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -199,7 +211,6 @@ const UserProfile = () => {
         .profile-header-card { background: white; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); margin-bottom: 2rem; border: 1px solid var(--border); }
         .header-bg { height: 120px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); }
         
-        /* Header Content Alignment */
         .header-content { 
           padding: 0 2rem 2rem; 
           position: relative; 
@@ -211,28 +222,20 @@ const UserProfile = () => {
         
         .profile-avatar { width: 100px; height: 100px; background: white; border: 4px solid white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: 800; color: var(--primary); box-shadow: var(--shadow); flex-shrink: 0; }
         
-        /* Added padding-top to push name down from the blue region */
-        .profile-title { 
-          padding-top: 1rem; 
-        }
+        .profile-title { padding-top: 1rem; }
         .profile-title h1 { margin-bottom: 0.25rem; font-size: 1.75rem; line-height: 1.2; }
         
         .role-badge { font-size: 0.85rem; font-weight: 600; padding: 0.25rem 0.75rem; border-radius: 50px; display: inline-block; }
         .role-driver { background: #DBEAFE; color: #1E40AF; }
         .role-passenger { background: #D1FAE5; color: #065F46; }
         
+        .rating-badge { display: inline-flex; align-items: center; gap: 0.25rem; background: #FEF3C7; color: #D97706; font-weight: 700; padding: 0.25rem 0.75rem; border-radius: 50px; font-size: 0.85rem; }
+        .rating-badge .star { font-size: 1rem; }
+
         .profile-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
         .info-list { display: flex; flex-direction: column; }
         
-        /* Increased padding for better vertical spacing */
-        .info-item { 
-          display: flex; 
-          justify-content: space-between; 
-          align-items: center; 
-          border-bottom: 1px solid #F3F4F6; 
-          padding: 1rem 0; 
-          gap: 1rem;
-        }
+        .info-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #F3F4F6; padding: 1rem 0; gap: 1rem; }
         .info-item:last-child { border-bottom: none; }
         .info-item .label { color: #6B7280; font-size: 0.9rem; }
         .info-item .value { color: var(--dark); font-weight: 500; text-align: right; }

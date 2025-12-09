@@ -18,13 +18,13 @@ public class RideResponse {
     private LocalDateTime createdAt;
     private DriverInfo driver;
     
-    // NEW: Route matching metadata
-    private String matchType;           // EXACT, ALONG_ROUTE, PARTIAL_DETOUR
-    private Double matchScore;          // 0-100, higher is better
-    private String matchDescription;    // Human-readable match explanation
-    private Double extraDistanceKm;     // Extra distance for driver
-    private String suggestedPickup;     // Suggested pickup location
-    private String suggestedDrop;       // Suggested drop location
+    // Route matching metadata
+    private String matchType;
+    private Double matchScore;
+    private String matchDescription;
+    private Double extraDistanceKm;
+    private String suggestedPickup;
+    private String suggestedDrop;
     
     @Data
     public static class DriverInfo {
@@ -35,6 +35,7 @@ public class RideResponse {
         private String carModel;
         private String licensePlate;
         private Integer vehicleCapacity;
+        private Double averageRating; // Added field
     }
     
     public static RideResponse fromRide(Ride ride) {

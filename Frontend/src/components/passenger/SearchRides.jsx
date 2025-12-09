@@ -39,7 +39,6 @@ const SearchRides = () => {
     setError("");
     setLoading(true);
     try {
-      // CHANGED: Pass the date string directly (YYYY-MM-DD) for full-day search
       const response = await rideService.searchRides(
         searchParams.source,
         searchParams.destination,
@@ -232,7 +231,6 @@ const SearchRides = () => {
                 required
                 className="form-input"
               />
-              {/* CHANGED: Input type to 'date' for day-based search */}
               <input
                 type="date"
                 name="date"
@@ -338,8 +336,17 @@ const SearchRides = () => {
                           {ride.driver.name.charAt(0)}
                         </div>
                         <div>
-                          <div className="font-semibold text-sm">
-                            {ride.driver.name}
+                          <div className="flex items-center gap-2">
+                            <div className="font-semibold text-sm">
+                              {ride.driver.name}
+                            </div>
+                            {/* NEW: Driver Rating Display */}
+                            <div className="driver-rating">
+                              <span className="star">★</span>
+                              {ride.driver.averageRating
+                                ? ride.driver.averageRating.toFixed(1)
+                                : "New"}
+                            </div>
                           </div>
                           <div className="text-xs text-gray-500">
                             {ride.driver.carModel} • {ride.availableSeats} seats
@@ -373,7 +380,7 @@ const SearchRides = () => {
           </div>
         )}
 
-        {/* Booking Modal */}
+        {/* Booking Modal (Unchanged parts...) */}
         {selectedRide && (
           <div className="modal-overlay">
             <div className="modal-content">
@@ -569,6 +576,10 @@ const SearchRides = () => {
         .price-tag { background: #EFF6FF; color: var(--primary); font-weight: 700; padding: 0.25rem 0.75rem; border-radius: 6px; }
         .driver-mini-profile { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: var(--bg); border-radius: 8px; }
         .avatar-circle { width: 32px; height: 32px; background: var(--dark); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; }
+        
+        /* New Styles for Rating */
+        .driver-rating { display: inline-flex; align-items: center; gap: 2px; background: #FEF3C7; color: #D97706; font-size: 0.7rem; padding: 1px 6px; border-radius: 10px; font-weight: 700; margin-left: 0.5rem; }
+        .driver-rating .star { font-size: 0.7rem; }
         
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(2px); }
         .modal-content { background: white; width: 90%; max-width: 550px; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-lg); max-height: 90vh; overflow-y: auto; }

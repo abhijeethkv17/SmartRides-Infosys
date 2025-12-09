@@ -7,6 +7,7 @@ import com.rideshare.model.Ride;
 import com.rideshare.model.Role;
 import com.rideshare.model.User;
 import com.rideshare.repository.BookingRepository;
+import com.rideshare.repository.ReviewRepository;
 import com.rideshare.repository.RideRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -35,6 +36,17 @@ public class RideService {
     
     @Autowired
     private RouteMatchingService routeMatchingService;
+
+    @Autowired
+    private ReviewRepository reviewRepository;
+
+    // Helper method to populate driver rating
+    private void populateDriverRating(RideResponse response) {
+        if (response.getDriver() != null) {
+            Double rating = reviewRepository.getAverageRatingForUser(response.getDriver().getId());
+            response.getDriver().setAverageRating(rating != null ? rating : 0.0);
+        }
+    }
     
     public RideResponse postRide(RideRequest request) {
         User driver = userService.getCurrentUser();
@@ -103,19 +115,15 @@ public class RideService {
             throw new RuntimeException("Only active rides can be marked as completed");
         }
 
-        // 1. Update Ride Status
         ride.setStatus("COMPLETED");
         Ride completedRide = rideRepository.save(ride);
-
-        // 2. Update Status of all Bookings for this ride
-        // This ensures ReviewService sees them as eligible for review
+        
         List<Booking> bookings = bookingRepository.findByRide(ride);
         for (Booking booking : bookings) {
             if ("CONFIRMED".equals(booking.getStatus())) {
                 booking.setStatus("COMPLETED");
                 bookingRepository.save(booking);
                 
-                // Optional: Notify passenger
                 try {
                     notificationService.sendNotification(
                         booking.getPassenger(),
@@ -190,12 +198,17 @@ public class RideService {
         
         for (RouteMatchingService.RideMatch match : matches) {
             RideResponse response = RideResponse.fromRide(match.getRide());
+            
+            // Populate Driver Rating
+            populateDriverRating(response);
+
             response.setMatchType(match.getMatchType().name());
             response.setMatchScore(match.getMatchScore());
             response.setMatchDescription(match.getMatchDescription());
             response.setExtraDistanceKm(match.getExtraDistanceKm());
             response.setSuggestedPickup(match.getSuggestedPickup());
             response.setSuggestedDrop(match.getSuggestedDrop());
+            
             responses.add(response);
         }
         
@@ -205,17 +218,28 @@ public class RideService {
     public List<RideResponse> getDriverRides() {
         User driver = userService.getCurrentUser();
         List<Ride> rides = rideRepository.findByDriverOrderByDepartureDateTimeDesc(driver);
+        // Note: We don't necessarily need to populate the driver's own rating for their own dashboard view of rides,
+        // but if needed, we can add it here.
         return rides.stream().map(RideResponse::fromRide).collect(Collectors.toList());
     }
     
     public RideResponse getRideById(Long id) {
         Ride ride = rideRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Ride not found"));
-        return RideResponse.fromRide(ride);
+        RideResponse response = RideResponse.fromRide(ride);
+        populateDriverRating(response);
+        return response;
     }
     
     public List<RideResponse> getAllActiveRides() {
         List<Ride> rides = rideRepository.findByStatusOrderByDepartureDateTimeAsc("ACTIVE");
-        return rides.stream().map(RideResponse::fromRide).collect(Collectors.toList());
+        List<RideResponse> responses = rides.stream()
+                .map(RideResponse::fromRide)
+                .collect(Collectors.toList());
+        
+        // Populate ratings
+        responses.forEach(this::populateDriverRating);
+        
+        return responses;
     }
 }
