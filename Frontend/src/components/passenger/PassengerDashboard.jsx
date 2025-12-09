@@ -18,7 +18,11 @@ const PassengerDashboard = () => {
   const [selectedBooking, setSelectedBooking] = useState(null);
 
   useEffect(() => {
+    // Initial fetch
     fetchData();
+
+    // Poll for updates every 15 seconds to catch "Ride Completed" status
+    const intervalId = setInterval(fetchData, 15000);
 
     if (successMessage) {
       const timer = setTimeout(() => {
@@ -27,10 +31,13 @@ const PassengerDashboard = () => {
       }, 5000);
       return () => clearTimeout(timer);
     }
+
+    return () => clearInterval(intervalId);
   }, []);
 
   const fetchData = async () => {
     try {
+      // Don't set loading true on background refreshes to avoid UI flickering
       const [bookingsRes, reviewsRes] = await Promise.all([
         bookingService.getPassengerBookings(),
         reviewService.getPendingReviews(),
@@ -43,7 +50,8 @@ const PassengerDashboard = () => {
         setPendingReviews(reviewsRes.data);
       }
     } catch (err) {
-      setError("Failed to load dashboard data");
+      console.error("Failed to load dashboard data", err);
+      if (loading) setError("Failed to load dashboard data");
     } finally {
       setLoading(false);
     }
@@ -129,7 +137,7 @@ const PassengerDashboard = () => {
 
         {/* Pending Reviews Banner */}
         {pendingReviews.length > 0 && (
-          <div className="review-banner mb-6">
+          <div className="review-banner mb-6 fade-in">
             <div className="review-banner-content">
               <div className="review-banner-icon">⭐</div>
               <div className="review-banner-text">
@@ -190,8 +198,14 @@ const PassengerDashboard = () => {
               </svg>
             </div>
             <div className="stat-content">
-              <h3>{bookings.filter((b) => b.status === "CONFIRMED").length}</h3>
-              <p>Confirmed Rides</p>
+              <h3>
+                {
+                  bookings.filter(
+                    (b) => b.status === "CONFIRMED" || b.status === "COMPLETED"
+                  ).length
+                }
+              </h3>
+              <p>Active & Past Rides</p>
             </div>
           </div>
 
@@ -249,6 +263,7 @@ const PassengerDashboard = () => {
         ) : (
           <div className="bookings-grid">
             {bookings.map((booking) => {
+              // Check if review is possible: Status COMPLETED and in pending list
               const canReview =
                 booking.status === "COMPLETED" &&
                 pendingReviews.some((pr) => pr.id === booking.id);

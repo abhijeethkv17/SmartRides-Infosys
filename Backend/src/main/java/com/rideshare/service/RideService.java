@@ -10,6 +10,7 @@ import com.rideshare.repository.BookingRepository;
 import com.rideshare.repository.RideRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -88,6 +89,7 @@ public class RideService {
         rideRepository.delete(ride);
     }
     
+    @Transactional
     public RideResponse completeRide(Long id) {
         User currentUser = userService.getCurrentUser();
         Ride ride = rideRepository.findById(id)
@@ -101,8 +103,31 @@ public class RideService {
             throw new RuntimeException("Only active rides can be marked as completed");
         }
 
+        // 1. Update Ride Status
         ride.setStatus("COMPLETED");
         Ride completedRide = rideRepository.save(ride);
+
+        // 2. Update Status of all Bookings for this ride
+        // This ensures ReviewService sees them as eligible for review
+        List<Booking> bookings = bookingRepository.findByRide(ride);
+        for (Booking booking : bookings) {
+            if ("CONFIRMED".equals(booking.getStatus())) {
+                booking.setStatus("COMPLETED");
+                bookingRepository.save(booking);
+                
+                // Optional: Notify passenger
+                try {
+                    notificationService.sendNotification(
+                        booking.getPassenger(),
+                        "RIDE_COMPLETED",
+                        "Your ride has arrived! Please rate your experience.",
+                        ride.getId()
+                    );
+                } catch (Exception e) {
+                    System.err.println("Failed to notify passenger: " + e.getMessage());
+                }
+            }
+        }
         
         return RideResponse.fromRide(completedRide);
     }
@@ -144,44 +169,33 @@ public class RideService {
         return RideResponse.fromRide(cancelledRide);
     }
     
-    /**
-     * UPDATED: Search rides by Date (Whole Day) with Route Matching
-     */
     public List<RideResponse> searchRides(String source, String destination, LocalDate date) {
         LocalDateTime startDateTime;
         LocalDateTime endDateTime;
 
         if (date != null) {
-            // Search for the whole day (00:00:00 to 23:59:59 effectively)
             startDateTime = date.atStartOfDay();
             endDateTime = date.plusDays(1).atStartOfDay();
         } else {
-            // If no date provided, default to searching from now onwards
             startDateTime = LocalDateTime.now();
-            endDateTime = startDateTime.plusYears(100); // Far future
+            endDateTime = startDateTime.plusYears(100); 
         }
         
-        // Get all available rides within the date range
         List<Ride> allRides = rideRepository.searchRides(source, destination, startDateTime, endDateTime);
         
-        // Apply intelligent route matching
         List<RouteMatchingService.RideMatch> matches = 
                 routeMatchingService.matchRides(allRides, source, destination);
         
-        // Convert to RideResponse with match information
         List<RideResponse> responses = new ArrayList<>();
         
         for (RouteMatchingService.RideMatch match : matches) {
             RideResponse response = RideResponse.fromRide(match.getRide());
-            
-            // Add match metadata
             response.setMatchType(match.getMatchType().name());
             response.setMatchScore(match.getMatchScore());
             response.setMatchDescription(match.getMatchDescription());
             response.setExtraDistanceKm(match.getExtraDistanceKm());
             response.setSuggestedPickup(match.getSuggestedPickup());
             response.setSuggestedDrop(match.getSuggestedDrop());
-            
             responses.add(response);
         }
         
