@@ -3,8 +3,13 @@ package com.rideshare.service;
 import com.rideshare.dto.*;
 import com.rideshare.model.*;
 import com.rideshare.repository.*;
+import com.rideshare.security.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +37,48 @@ public class AdminService {
     
     @Autowired
     private NotificationService notificationService;
+
+    // Added for Admin Login
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
+    
+    /**
+     * Authenticate Admin
+     */
+    public AuthResponse authenticateAdmin(LoginRequest loginRequest) {
+        // 1. Authenticate using Spring Security
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        loginRequest.getEmail(),
+                        loginRequest.getPassword()
+                )
+        );
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        
+        // 2. Fetch User to verify Role
+        User user = userRepository.findByEmail(loginRequest.getEmail())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+                
+        if (user.getRole() != Role.ADMIN) {
+            throw new RuntimeException("Access denied: User is not an admin");
+        }
+
+        // 3. Generate Token
+        String jwt = jwtTokenProvider.generateToken(authentication);
+        
+        // 4. Return Response (Using the correct constructor with Role enum)
+        return new AuthResponse(
+            jwt, 
+            user.getId(), 
+            user.getName(), 
+            user.getEmail(), 
+            user.getRole()
+        );
+    }
     
     /**
      * Get dashboard statistics

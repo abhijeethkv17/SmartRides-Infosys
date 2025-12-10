@@ -6,7 +6,7 @@ import {
   Navigate,
 } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
-import { NotificationProvider } from "./context/NotificationContext"; // Import
+import { NotificationProvider } from "./context/NotificationContext";
 import Navbar from "./components/common/Navbar";
 import PrivateRoute from "./components/common/PrivateRoute";
 import LandingPage from "./components/common/LandingPage";
@@ -20,24 +20,34 @@ import SearchRides from "./components/passenger/SearchRides";
 import UserProfile from "./components/profile/UserProfile";
 import PaymentHistory from "./components/payment/PaymentHistory";
 import { ROLE } from "./utils/constants";
+
+// Admin Components
+import AdminLogin from "./components/auth/AdminLogin";
 import AdminDashboard from "./components/admin/AdminDashboard";
 import UserManagement from "./components/admin/UserManagement";
-import AdminLogin from "./components/auth/AdminLogin";
+import RideManagement from "./components/admin/RideManagement";
+import BookingManagement from "./components/admin/BookingManagement";
+import PaymentOversight from "./components/admin/PaymentOversight";
+import AdminReports from "./components/admin/AdminReports";
+import ActivityLogs from "./components/admin/ActivityLogs";
+
 import "./App.css";
 
 function App() {
   return (
     <AuthProvider>
       <NotificationProvider>
-        {" "}
-        {/* Wrap NotificationProvider inside AuthProvider */}
         <Router>
           <div className="App">
             <Navbar />
             <Routes>
+              {/* Public Routes */}
               <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/admin/login" element={<AdminLogin />} />
+
+              {/* Driver Routes */}
               <Route
                 path="/driver/dashboard"
                 element={
@@ -62,6 +72,8 @@ function App() {
                   </PrivateRoute>
                 }
               />
+
+              {/* Passenger Routes */}
               <Route
                 path="/passenger/dashboard"
                 element={
@@ -79,6 +91,7 @@ function App() {
                 }
               />
 
+              {/* Common Protected Routes */}
               <Route
                 path="/payments/history"
                 element={
@@ -87,7 +100,6 @@ function App() {
                   </PrivateRoute>
                 }
               />
-
               <Route
                 path="/profile"
                 element={
@@ -96,6 +108,8 @@ function App() {
                   </PrivateRoute>
                 }
               />
+
+              {/* Admin Routes */}
               <Route
                 path="/admin/dashboard"
                 element={
@@ -112,7 +126,46 @@ function App() {
                   </PrivateRoute>
                 }
               />
-              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route
+                path="/admin/rides"
+                element={
+                  <PrivateRoute role="ADMIN">
+                    <RideManagement />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/admin/bookings"
+                element={
+                  <PrivateRoute role="ADMIN">
+                    <BookingManagement />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/admin/payments"
+                element={
+                  <PrivateRoute role="ADMIN">
+                    <PaymentOversight />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/admin/reports"
+                element={
+                  <PrivateRoute role="ADMIN">
+                    <AdminReports />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/admin/activity"
+                element={
+                  <PrivateRoute role="ADMIN">
+                    <ActivityLogs />
+                  </PrivateRoute>
+                }
+              />
             </Routes>
           </div>
         </Router>

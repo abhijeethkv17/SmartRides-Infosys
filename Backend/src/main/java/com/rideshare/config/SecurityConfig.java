@@ -54,6 +54,9 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/rides/search").permitAll()
+                // FIX: Allow admin login endpoint explicitly BEFORE restricting other admin routes
+                .requestMatchers("/api/admin/auth/**").permitAll() 
+                // Restrict all other admin endpoints
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )

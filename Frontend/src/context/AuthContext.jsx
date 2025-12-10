@@ -1,51 +1,49 @@
-import React, { createContext, useState, useContext, useEffect } from "react";
+import React, { createContext, useState, useEffect, useContext } from "react";
 import { authService } from "../services/authService";
 
-const AuthContext = createContext(null);
+const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Initialize user from LocalStorage on app load
   useEffect(() => {
-    const currentUser = authService.getCurrentUser();
-    setUser(currentUser);
-    setLoading(false);
+    const initAuth = async () => {
+      const storedUser = localStorage.getItem("user");
+      const token = localStorage.getItem("token");
+      if (storedUser && token) {
+        try {
+          setUser(JSON.parse(storedUser));
+        } catch (error) {
+          console.error("Failed to parse user data", error);
+          localStorage.removeItem("user");
+          localStorage.removeItem("token");
+        }
+      }
+      setLoading(false);
+    };
+    initAuth();
   }, []);
 
   const login = async (credentials) => {
-    const response = await authService.login(credentials);
-    if (response.success) {
-      setUser(response.data);
-    }
-    return response;
+    const data = await authService.login(credentials);
+    setUser(data.user);
+    return data;
   };
 
-  // Dedicated Admin Login function to ensure state sync
+  // ADDED: Admin login function to update state
   const adminLogin = async (credentials) => {
-    try {
-      const response = await authService.adminDirectLogin(credentials);
-      if (response.success) {
-        // 1. Save to LocalStorage (Redundant but safe)
-        localStorage.setItem("token", response.data.token);
-        localStorage.setItem("user", JSON.stringify(response.data));
-
-        // 2. Update Context State
-        setUser(response.data);
-      }
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    const data = await authService.adminLogin(credentials);
+    setUser(data.user);
+    return data;
   };
 
   const register = async (userData) => {
-    const response = await authService.register(userData);
-    if (response.success) {
-      setUser(response.data);
+    const data = await authService.register(userData);
+    if (data.token) {
+      setUser(data.user);
     }
-    return response;
+    return data;
   };
 
   const logout = () => {
@@ -55,7 +53,14 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, setUser, login, adminLogin, register, logout, loading }}
+      value={{
+        user,
+        login,
+        adminLogin, // Export the new function
+        register,
+        logout,
+        loading,
+      }}
     >
       {children}
     </AuthContext.Provider>
@@ -63,9 +68,5 @@ export const AuthProvider = ({ children }) => {
 };
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
+  return useContext(AuthContext);
 };
