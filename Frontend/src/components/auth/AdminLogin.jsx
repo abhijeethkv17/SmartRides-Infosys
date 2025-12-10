@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { authService } from "../../services/authService";
 
 const AdminLogin = () => {
   const [formData, setFormData] = useState({
@@ -10,7 +9,9 @@ const AdminLogin = () => {
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+
+  // Use the new adminLogin function from context
+  const { adminLogin } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -23,19 +24,18 @@ const AdminLogin = () => {
     setLoading(true);
 
     try {
-      const response = await authService.adminDirectLogin(formData);
-      if (response.success) {
-        // Manually set user in auth context
-        localStorage.setItem("token", response.data.token);
-        localStorage.setItem("user", JSON.stringify(response.data));
+      // Execute login via Context (handles API + State update)
+      const response = await adminLogin(formData);
 
-        // Navigate to admin dashboard
-        navigate("/admin/dashboard");
-        window.location.reload(); // Refresh to update auth state
+      if (response.success) {
+        // Navigate immediately - Context is already updated
+        // replace: true prevents back-button returning to login
+        navigate("/admin/dashboard", { replace: true });
       } else {
         setError(response.message || "Login failed");
       }
     } catch (err) {
+      console.error("Login Error:", err);
       setError(
         err.response?.data?.message ||
           "Invalid email or password. Make sure you're using an admin account."
@@ -130,13 +130,14 @@ const AdminLogin = () => {
         .admin-badge {
           display: inline-block;
           padding: 0.5rem 1rem;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
           color: white;
           border-radius: 50px;
           font-size: 0.875rem;
           font-weight: 700;
           margin-bottom: 1rem;
           letter-spacing: 0.05em;
+          box-shadow: var(--shadow);
         }
         .alert-error {
           background: #FEF2F2;

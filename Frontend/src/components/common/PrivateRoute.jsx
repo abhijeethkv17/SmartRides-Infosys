@@ -7,16 +7,31 @@ const PrivateRoute = ({ children, role }) => {
 
   if (loading) {
     return (
-      <div style={{ textAlign: "center", marginTop: "50px" }}>Loading...</div>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          color: "var(--primary)",
+        }}
+      >
+        Loading...
+      </div>
     );
   }
 
+  // Debugging: Check why redirect is happening
   if (!user) {
-    return <Navigate to="/login" />;
+    console.log("PrivateRoute: No user found, redirecting to login");
+    return <Navigate to="/login" replace />;
   }
 
   if (role && user.role !== role) {
-    return <Navigate to="/" />;
+    console.log(
+      `PrivateRoute: Role mismatch. Required: ${role}, Found: ${user.role}`
+    );
+    return <Navigate to="/" replace />;
   }
 
   return children;
