@@ -26,24 +26,34 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (credentials) => {
-    const data = await authService.login(credentials);
-    setUser(data.user);
-    return data;
+    const userData = await authService.login(credentials);
+    if (userData.token) {
+      setUser(userData);
+    }
+    return userData;
   };
 
-  // ADDED: Admin login function to update state
-  const adminLogin = async (credentials) => {
-    const data = await authService.adminLogin(credentials);
-    setUser(data.user);
-    return data;
+  // NEW: Handle the OTP+Password login flow via Context
+  const completeLogin = async (email, otp, password) => {
+    try {
+      const userData = await authService.completeLogin(email, otp, password);
+      // Check if we got a valid user object with a token
+      if (userData && userData.token) {
+        setUser(userData);
+        return { success: true, data: userData };
+      }
+      return { success: false, message: "Login failed" };
+    } catch (error) {
+      throw error;
+    }
   };
 
   const register = async (userData) => {
-    const data = await authService.register(userData);
-    if (data.token) {
-      setUser(data.user);
+    const userDataResponse = await authService.register(userData);
+    if (userDataResponse.token) {
+      setUser(userDataResponse);
     }
-    return data;
+    return userDataResponse;
   };
 
   const logout = () => {
@@ -56,7 +66,7 @@ export const AuthProvider = ({ children }) => {
       value={{
         user,
         login,
-        adminLogin, // Export the new function
+        completeLogin, // Expose this function
         register,
         logout,
         loading,

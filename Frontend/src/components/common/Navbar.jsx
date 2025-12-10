@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { ROLE } from "../../utils/constants";
-import NotificationBell from "./NotificationBell"; // Import the new component
+import NotificationBell from "./NotificationBell";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -18,6 +18,13 @@ const Navbar = () => {
 
   const isActive = (path) => location.pathname === path;
   const linkClass = (path) => (isActive(path) ? "nav-link active" : "nav-link");
+
+  // Helper to determine the badge text
+  const getRoleBadge = (role) => {
+    if (role === ROLE.ADMIN) return "Admin";
+    if (role === ROLE.DRIVER) return "Driver";
+    return "Passenger";
+  };
 
   return (
     <nav className="navbar">
@@ -47,7 +54,26 @@ const Navbar = () => {
           {user ? (
             <>
               <div className="nav-links">
-                {user.role === ROLE.DRIVER ? (
+                {/* ADMIN LINKS */}
+                {user.role === ROLE.ADMIN && (
+                  <>
+                    <Link
+                      to="/admin/dashboard"
+                      className={linkClass("/admin/dashboard")}
+                    >
+                      Admin Dashboard
+                    </Link>
+                    <Link
+                      to="/admin/users"
+                      className={linkClass("/admin/users")}
+                    >
+                      Users
+                    </Link>
+                  </>
+                )}
+
+                {/* DRIVER LINKS */}
+                {user.role === ROLE.DRIVER && (
                   <>
                     <Link
                       to="/driver/dashboard"
@@ -62,7 +88,10 @@ const Navbar = () => {
                       Post Ride
                     </Link>
                   </>
-                ) : (
+                )}
+
+                {/* PASSENGER LINKS */}
+                {user.role === ROLE.PASSENGER && (
                   <>
                     <Link
                       to="/passenger/dashboard"
@@ -78,20 +107,18 @@ const Navbar = () => {
                     </Link>
                   </>
                 )}
+
                 <Link to="/profile" className={linkClass("/profile")}>
                   Profile
                 </Link>
               </div>
 
               <div className="user-menu">
-                {/* Added Notification Bell Here */}
                 <NotificationBell />
 
                 <div className="user-info">
                   <span className="user-name">{user.name}</span>
-                  <span className="user-badge">
-                    {user.role === ROLE.DRIVER ? "Driver" : "Passenger"}
-                  </span>
+                  <span className="user-badge">{getRoleBadge(user.role)}</span>
                 </div>
                 <button onClick={handleLogout} className="btn-logout">
                   <svg
@@ -111,9 +138,7 @@ const Navbar = () => {
             </>
           ) : (
             <div className="auth-buttons">
-              <Link to="/admin/login" className="nav-link">
-                Admin Login
-              </Link>
+              {/* Removed separate Admin Login link since login is now unified */}
               <Link to="/login" className="nav-link">
                 Sign In
               </Link>

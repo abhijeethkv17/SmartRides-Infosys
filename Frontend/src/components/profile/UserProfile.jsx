@@ -39,6 +39,20 @@ const UserProfile = () => {
       </div>
     );
 
+  // Helper for role display text
+  const getRoleLabel = (role) => {
+    if (role === ROLE.ADMIN) return "Administrator";
+    if (role === ROLE.DRIVER) return "Driver Account";
+    return "Passenger Account";
+  };
+
+  // Helper for role badge class
+  const getRoleClass = (role) => {
+    if (role === ROLE.ADMIN) return "role-admin";
+    if (role === ROLE.DRIVER) return "role-driver";
+    return "role-passenger";
+  };
+
   return (
     <div className="page-container">
       <div className="container" style={{ maxWidth: "900px" }}>
@@ -52,19 +66,11 @@ const UserProfile = () => {
             <div className="profile-title">
               <h1>{profile.name}</h1>
               <div className="flex items-center gap-2 justify-center sm:justify-start">
-                <span
-                  className={`role-badge ${
-                    profile.role === ROLE.DRIVER
-                      ? "role-driver"
-                      : "role-passenger"
-                  }`}
-                >
-                  {profile.role === ROLE.DRIVER
-                    ? "Driver Account"
-                    : "Passenger Account"}
+                <span className={`role-badge ${getRoleClass(profile.role)}`}>
+                  {getRoleLabel(profile.role)}
                 </span>
 
-                {/* Rating Badge */}
+                {/* Rating Badge (Driver Only) */}
                 {profile.role === ROLE.DRIVER && (
                   <span className="rating-badge">
                     <span className="star">★</span>
@@ -179,7 +185,20 @@ const UserProfile = () => {
               </h3>
             </div>
             <div className="card-body action-list">
-              {profile.role === ROLE.DRIVER ? (
+              {profile.role === ROLE.ADMIN && (
+                <>
+                  <Link to="/admin/dashboard" className="action-btn">
+                    <span>📊 Admin Dashboard</span>
+                    <span className="arrow">→</span>
+                  </Link>
+                  <Link to="/admin/users" className="action-btn">
+                    <span>👥 Manage Users</span>
+                    <span className="arrow">→</span>
+                  </Link>
+                </>
+              )}
+
+              {profile.role === ROLE.DRIVER && (
                 <>
                   <Link to="/driver/dashboard" className="action-btn">
                     <span>📊 View Dashboard</span>
@@ -190,7 +209,9 @@ const UserProfile = () => {
                     <span className="arrow">→</span>
                   </Link>
                 </>
-              ) : (
+              )}
+
+              {profile.role === ROLE.PASSENGER && (
                 <>
                   <Link to="/passenger/dashboard" className="action-btn">
                     <span>📊 View Dashboard</span>
@@ -228,6 +249,7 @@ const UserProfile = () => {
         .role-badge { font-size: 0.85rem; font-weight: 600; padding: 0.25rem 0.75rem; border-radius: 50px; display: inline-block; }
         .role-driver { background: #DBEAFE; color: #1E40AF; }
         .role-passenger { background: #D1FAE5; color: #065F46; }
+        .role-admin { background: #FEE2E2; color: #991B1B; }
         
         .rating-badge { display: inline-flex; align-items: center; gap: 0.25rem; background: #FEF3C7; color: #D97706; font-weight: 700; padding: 0.25rem 0.75rem; border-radius: 50px; font-size: 0.85rem; }
         .rating-badge .star { font-size: 1rem; }

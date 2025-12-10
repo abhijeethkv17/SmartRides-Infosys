@@ -22,7 +22,6 @@ import PaymentHistory from "./components/payment/PaymentHistory";
 import { ROLE } from "./utils/constants";
 
 // Admin Components
-import AdminLogin from "./components/auth/AdminLogin";
 import AdminDashboard from "./components/admin/AdminDashboard";
 import UserManagement from "./components/admin/UserManagement";
 import RideManagement from "./components/admin/RideManagement";
@@ -45,7 +44,6 @@ function App() {
               <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
-              <Route path="/admin/login" element={<AdminLogin />} />
 
               {/* Driver Routes */}
               <Route

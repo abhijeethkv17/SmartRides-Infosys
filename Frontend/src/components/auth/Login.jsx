@@ -11,10 +11,11 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+
+  // Get completeLogin from context
+  const { completeLogin } = useAuth();
   const navigate = useNavigate();
 
-  // ... Logic remains identical to original file ...
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -58,18 +59,23 @@ const Login = () => {
     setError("");
     setLoading(true);
     try {
-      const response = await authService.completeLogin(email, otp, password);
+      // Use context function to login and update state
+      const response = await completeLogin(email, otp, password);
+
       if (response.success) {
-        await login({ email, password });
-        navigate(
-          response.data.role === ROLE.DRIVER
-            ? "/driver/dashboard"
-            : "/passenger/dashboard"
-        );
+        // Redirect based on role
+        if (response.data.role === ROLE.ADMIN) {
+          navigate("/admin/dashboard");
+        } else if (response.data.role === ROLE.DRIVER) {
+          navigate("/driver/dashboard");
+        } else {
+          navigate("/passenger/dashboard");
+        }
       } else {
         setError(response.message || "Login failed");
       }
     } catch (err) {
+      console.error(err);
       setError(
         err.response?.data?.message ||
           "Password is incorrect! Please try again!"
