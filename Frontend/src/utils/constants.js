@@ -4,4 +4,5 @@ export const API_BASE_URL =
 export const ROLE = {
   DRIVER: "DRIVER",
   PASSENGER: "PASSENGER",
+  ADMIN: "ADMIN",
 };

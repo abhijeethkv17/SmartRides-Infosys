@@ -32,8 +32,24 @@ public interface RideRepository extends JpaRepository<Ride, Long> {
            "r.availableSeats > 0 AND " +
            "r.status = 'ACTIVE' " +
            "ORDER BY r.departureDateTime ASC")
-    List<Ride> searchRides(@Param("source") String source, 
+       List<Ride> searchRides(@Param("source") String source, 
                           @Param("destination") String destination, 
                           @Param("startDate") LocalDateTime startDate,
                           @Param("endDate") LocalDateTime endDate);
+
+       Long countByStatus(String status);
+
+       @Query("SELECT COUNT(r) FROM Ride r WHERE DATE(r.createdAt) = CURRENT_DATE")
+       Long countRidesCreatedToday();
+
+       @Query("SELECT r FROM Ride r WHERE " +
+              "LOWER(r.source) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+              "LOWER(r.destination) LIKE LOWER(CONCAT('%', :search, '%'))")
+       List<Ride> searchRidesByRoute(@Param("search") String search);
+
+       List<Ride> findAllByOrderByDepartureDateTimeDesc();
+
+       List<Ride> findByStatusOrderByDepartureDateTimeDesc(String status);
+
+       List<Ride> findByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
 }

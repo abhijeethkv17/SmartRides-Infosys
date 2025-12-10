@@ -111,6 +111,9 @@ const Navbar = () => {
             </>
           ) : (
             <div className="auth-buttons">
+              <Link to="/admin/login" className="nav-link">
+                Admin Login
+              </Link>
               <Link to="/login" className="nav-link">
                 Sign In
               </Link>

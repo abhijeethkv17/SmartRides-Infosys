@@ -20,6 +20,9 @@ import SearchRides from "./components/passenger/SearchRides";
 import UserProfile from "./components/profile/UserProfile";
 import PaymentHistory from "./components/payment/PaymentHistory";
 import { ROLE } from "./utils/constants";
+import AdminDashboard from "./components/admin/AdminDashboard";
+import UserManagement from "./components/admin/UserManagement";
+import AdminLogin from "./components/auth/AdminLogin";
 import "./App.css";
 
 function App() {
@@ -93,6 +96,23 @@ function App() {
                   </PrivateRoute>
                 }
               />
+              <Route
+                path="/admin/dashboard"
+                element={
+                  <PrivateRoute role="ADMIN">
+                    <AdminDashboard />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/admin/users"
+                element={
+                  <PrivateRoute role="ADMIN">
+                    <UserManagement />
+                  </PrivateRoute>
+                }
+              />
+              <Route path="/admin/login" element={<AdminLogin />} />
             </Routes>
           </div>
         </Router>

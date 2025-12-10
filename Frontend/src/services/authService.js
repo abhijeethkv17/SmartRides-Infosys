@@ -60,4 +60,16 @@ export const authService = {
     const response = await api.get("/user/profile");
     return response.data;
   },
+
+  /**
+   * Direct login for admin users (bypasses OTP)
+   */
+  adminDirectLogin: async (credentials) => {
+    const response = await api.post("/auth/admin-login", credentials);
+    if (response.data.success && response.data.data) {
+      localStorage.setItem("token", response.data.data.token);
+      localStorage.setItem("user", JSON.stringify(response.data.data));
+    }
+    return response.data;
+  },
 };
