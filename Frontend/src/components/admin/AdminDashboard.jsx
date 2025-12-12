@@ -81,7 +81,7 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Quick Stats Grid */}
+        {/* Top Level: Quick Stats Grid */}
         <div className="stats-grid-admin">
           {/* Users Stats */}
           <div className="stat-card-admin">
@@ -194,164 +194,167 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Today's Activity */}
-        <div className="activity-section">
-          <h2>Today's Activity</h2>
-          <div className="activity-grid">
-            <div className="activity-card">
-              <div className="activity-icon">🚗</div>
-              <div className="activity-value">{stats.ridesToday}</div>
-              <div className="activity-label">Rides Posted</div>
-            </div>
-            <div className="activity-card">
-              <div className="activity-icon">📋</div>
-              <div className="activity-value">{stats.bookingsToday}</div>
-              <div className="activity-label">Bookings Made</div>
-            </div>
-            <div className="activity-card">
-              <div className="activity-icon">💰</div>
-              <div className="activity-value">
-                {formatCurrency(stats.revenueToday || 0)}
+        {/* Main Dashboard Split Layout */}
+        <div className="dashboard-split">
+          {/* Left Column: Today's Activity */}
+          <div className="activity-section">
+            <h2>Today's Activity</h2>
+            <div className="activity-grid">
+              <div className="activity-card">
+                <div className="activity-icon">🚗</div>
+                <div className="activity-value">{stats.ridesToday}</div>
+                <div className="activity-label">Rides Posted</div>
               </div>
-              <div className="activity-label">Revenue Generated</div>
-            </div>
-            <div className="activity-card">
-              <div className="activity-icon">👥</div>
-              <div className="activity-value">{stats.activeUsersToday}</div>
-              <div className="activity-label">Active Users</div>
+              <div className="activity-card">
+                <div className="activity-icon">📋</div>
+                <div className="activity-value">{stats.bookingsToday}</div>
+                <div className="activity-label">Bookings Made</div>
+              </div>
+              <div className="activity-card">
+                <div className="activity-icon">💰</div>
+                <div className="activity-value">
+                  {formatCurrency(stats.revenueToday || 0)}
+                </div>
+                <div className="activity-label">Revenue Generated</div>
+              </div>
+              <div className="activity-card">
+                <div className="activity-icon">👥</div>
+                <div className="activity-value">{stats.activeUsersToday}</div>
+                <div className="activity-label">Active Users</div>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Quick Actions */}
-        <div className="quick-actions">
-          <h2>Management</h2>
-          <div className="actions-grid">
-            <Link to="/admin/users" className="action-card">
-              <div className="action-icon" style={{ background: "#DBEAFE" }}>
-                <svg
-                  width="32"
-                  height="32"
-                  fill="none"
-                  stroke="#2563EB"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-                  />
-                </svg>
-              </div>
-              <h3>User Management</h3>
-              <p>Manage users, drivers, and passengers</p>
-            </Link>
+          {/* Right Column: Quick Actions / Management */}
+          <div className="quick-actions">
+            <h2>Management</h2>
+            <div className="actions-grid">
+              <Link to="/admin/users" className="action-card">
+                <div className="action-icon" style={{ background: "#DBEAFE" }}>
+                  <svg
+                    width="32"
+                    height="32"
+                    fill="none"
+                    stroke="#2563EB"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                    />
+                  </svg>
+                </div>
+                <h3>User Management</h3>
+                <p>Manage users, drivers, and passengers</p>
+              </Link>
 
-            <Link to="/admin/rides" className="action-card">
-              <div className="action-icon" style={{ background: "#D1FAE5" }}>
-                <svg
-                  width="32"
-                  height="32"
-                  fill="none"
-                  stroke="#10B981"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
-                  />
-                </svg>
-              </div>
-              <h3>Ride Management</h3>
-              <p>Monitor and manage all rides</p>
-            </Link>
+              <Link to="/admin/rides" className="action-card">
+                <div className="action-icon" style={{ background: "#D1FAE5" }}>
+                  <svg
+                    width="32"
+                    height="32"
+                    fill="none"
+                    stroke="#10B981"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                    />
+                  </svg>
+                </div>
+                <h3>Ride Management</h3>
+                <p>Monitor and manage all rides</p>
+              </Link>
 
-            <Link to="/admin/bookings" className="action-card">
-              <div className="action-icon" style={{ background: "#FEF3C7" }}>
-                <svg
-                  width="32"
-                  height="32"
-                  fill="none"
-                  stroke="#F59E0B"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                  />
-                </svg>
-              </div>
-              <h3>Booking Management</h3>
-              <p>View and manage all bookings</p>
-            </Link>
+              <Link to="/admin/bookings" className="action-card">
+                <div className="action-icon" style={{ background: "#FEF3C7" }}>
+                  <svg
+                    width="32"
+                    height="32"
+                    fill="none"
+                    stroke="#F59E0B"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                    />
+                  </svg>
+                </div>
+                <h3>Booking Management</h3>
+                <p>View and manage all bookings</p>
+              </Link>
 
-            <Link to="/admin/payments" className="action-card">
-              <div className="action-icon" style={{ background: "#E0E7FF" }}>
-                <svg
-                  width="32"
-                  height="32"
-                  fill="none"
-                  stroke="#6366F1"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-                  />
-                </svg>
-              </div>
-              <h3>Payment Oversight</h3>
-              <p>Track all transactions and revenue</p>
-            </Link>
+              <Link to="/admin/payments" className="action-card">
+                <div className="action-icon" style={{ background: "#E0E7FF" }}>
+                  <svg
+                    width="32"
+                    height="32"
+                    fill="none"
+                    stroke="#6366F1"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                    />
+                  </svg>
+                </div>
+                <h3>Payment Oversight</h3>
+                <p>Track all transactions and revenue</p>
+              </Link>
 
-            <Link to="/admin/reports" className="action-card">
-              <div className="action-icon" style={{ background: "#FEE2E2" }}>
-                <svg
-                  width="32"
-                  height="32"
-                  fill="none"
-                  stroke="#EF4444"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-              </div>
-              <h3>Reports & Analytics</h3>
-              <p>Generate comprehensive reports</p>
-            </Link>
+              <Link to="/admin/reports" className="action-card">
+                <div className="action-icon" style={{ background: "#FEE2E2" }}>
+                  <svg
+                    width="32"
+                    height="32"
+                    fill="none"
+                    stroke="#EF4444"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                </div>
+                <h3>Reports & Analytics</h3>
+                <p>Generate comprehensive reports</p>
+              </Link>
 
-            <Link to="/admin/activity" className="action-card">
-              <div className="action-icon" style={{ background: "#FAE8FF" }}>
-                <svg
-                  width="32"
-                  height="32"
-                  fill="none"
-                  stroke="#A855F7"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
-              <h3>Activity Logs</h3>
-              <p>View recent platform activity</p>
-            </Link>
+              <Link to="/admin/activity" className="action-card">
+                <div className="action-icon" style={{ background: "#FAE8FF" }}>
+                  <svg
+                    width="32"
+                    height="32"
+                    fill="none"
+                    stroke="#A855F7"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <h3>Activity Logs</h3>
+                <p>View recent platform activity</p>
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -424,10 +427,15 @@ const AdminDashboard = () => {
           color: #9CA3AF;
         }
 
-        .activity-section {
-          margin-bottom: 2rem;
+        /* NEW: Split Layout for Activity and Actions */
+        .dashboard-split {
+          display: grid;
+          grid-template-columns: 1fr 1.5fr;
+          gap: 2rem;
+          align-items: start;
         }
-        .activity-section h2 {
+
+        .activity-section h2, .quick-actions h2 {
           font-size: 1.5rem;
           font-weight: 700;
           margin-bottom: 1rem;
@@ -435,7 +443,7 @@ const AdminDashboard = () => {
 
         .activity-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
           gap: 1rem;
         }
 
@@ -451,7 +459,7 @@ const AdminDashboard = () => {
           margin-bottom: 0.5rem;
         }
         .activity-value {
-          font-size: 1.75rem;
+          font-size: 1.5rem;
           font-weight: 700;
           color: #1F2937;
           margin-bottom: 0.25rem;
@@ -461,26 +469,22 @@ const AdminDashboard = () => {
           color: #6B7280;
         }
 
-        .quick-actions h2 {
-          font-size: 1.5rem;
-          font-weight: 700;
-          margin-bottom: 1rem;
-        }
-
         .actions-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+          grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
           gap: 1.5rem;
         }
 
         .action-card {
           background: white;
-          padding: 2rem;
+          padding: 1.5rem;
           border-radius: 12px;
           border: 1px solid #E5E7EB;
           box-shadow: 0 1px 3px rgba(0,0,0,0.1);
           transition: all 0.3s;
           cursor: pointer;
+          display: block;
+          height: 100%;
         }
         .action-card:hover {
           transform: translateY(-4px);
@@ -489,8 +493,8 @@ const AdminDashboard = () => {
         }
 
         .action-icon {
-          width: 64px;
-          height: 64px;
+          width: 56px;
+          height: 56px;
           border-radius: 16px;
           display: flex;
           align-items: center;
@@ -499,7 +503,7 @@ const AdminDashboard = () => {
         }
 
         .action-card h3 {
-          font-size: 1.25rem;
+          font-size: 1.1rem;
           font-weight: 700;
           margin-bottom: 0.5rem;
           color: #1F2937;
@@ -507,6 +511,12 @@ const AdminDashboard = () => {
         .action-card p {
           color: #6B7280;
           font-size: 0.875rem;
+        }
+
+        @media (max-width: 1024px) {
+          .dashboard-split {
+            grid-template-columns: 1fr;
+          }
         }
 
         @media (max-width: 768px) {
